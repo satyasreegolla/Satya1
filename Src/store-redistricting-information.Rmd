@@ -1,0 +1,205 @@
+---
+title: "Store redistricting information"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-08"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+This program will read in census redistricting files
+which provide population and housing counts for
+every census block in every state in the U.S.
+
+### General information
+
+The starting point for data and information about
+the redistricting files is [here][c_red].
+
+This program is based on pl_geohd_2020_dar.r, 
+which is part of [this zip file][c_rcode].
+
+[c_red]: https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html
+[c_rcode]: https://www2.census.gov/programs-surveys/decennial/rdo/about/2020-census-program/Phase3/SupportMaterials/2020PL_R_import_scripts.zip
+
+An important contact at City Hall in Kansas City, Missouri is Steve Lebowski. He has done similar work every time new Census information is available.
+
+### Setup
+
+```{r setup}
+library(sf)
+library(tidyverse)
+path_name <- "../data"
+vnames <- c(
+  "FILEID", 
+  "STUSAB", 
+  "SUMLEV", 
+  "GEOVAR", 
+  "GEOCOMP", 
+  "CHARITER", 
+  "CIFSN", 
+  "LOGRECNO", 
+  "GEOID", 
+  "GEOCODE",
+  "REGION",
+  "DIVISION",
+  "STATE",
+  "STATENS",
+  "COUNTY",
+  "COUNTYCC",
+  "COUNTYNS",
+  "COUSUB",
+  "COUSUBCC",
+  "COUSUBNS",
+  "SUBMCD",
+  "SUBMCDCC",
+  "SUBMCDNS",
+  "ESTATE",
+  "ESTATECC",
+  "ESTATENS", 
+  "CONCIT",
+  "CONCITCC",
+  "CONCITNS",
+  "PLACE",
+  "PLACECC",
+  "PLACENS",
+  "TRACT",
+  "BLKGRP",
+  "BLOCK", 
+  "AIANHH",
+  "AIHHTLI",
+  "AIANHHFP",
+  "AIANHHCC",
+  "AIANHHNS",
+  "AITS",
+  "AITSFP",
+  "AITSCC",
+  "AITSNS",
+  "TTRACT",
+  "TBLKGRP",
+  "ANRC",
+  "ANRCCC",
+  "ANRCNS",
+  "CBSA",
+  "MEMI",
+  "CSA",
+  "METDIV",
+  "NECTA",
+  "NMEMI",
+  "CNECTA",
+  "NECTADIV",
+  "CBSAPCI",
+  "NECTAPCI",
+  "UA",
+  "UATYPE",
+  "UR",
+  "CD116",
+  "CD118",
+  "CD119", 
+  "CD120", 
+  "CD121", 
+  "SLDU18", 
+  "SLDU22", 
+  "SLDU24", 
+  "SLDU26", 
+  "SLDU28", 
+  "SLDL18", 
+  "SLDL22",
+  "SLDL24",
+  "SLDL26",
+  "SLDL28",
+  "VTD",
+  "VTDI",
+  "ZCTA",
+  "SDELM",
+  "SDSEC",
+  "SDUNI",
+  "PUMA",
+  "AREALAND",
+  "AREAWATR",
+  "BASENAME",
+  "NAME",
+  "FUNCSTAT",
+  "GCUNI",
+  "POP100",
+  "HU100",
+  "INTPTLAT",
+  "INTPTLON",
+  "LSADC",
+  "PARTFLAG",
+  "UGA")
+```
+
+### Read Kansas redistricting files
+
+```{r read-ks}
+file_name <- "red/ksgeo2020.pl"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  read.delim(
+    header=FALSE, 
+    colClasses="character", 
+    sep="|")                            -> red1
+names(red1) <- vnames
+red1                                  %>%
+  filter(SUMLEV == "750")             %>%
+  head
+```
+
+### Read Missouri redistricting files
+
+```{r read-mo}
+file_name <- "red/mogeo2020.pl"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  read.delim(
+    header=FALSE, 
+    colClasses="character", 
+    sep="|")                            -> red2
+names(red2) <- vnames
+red2                                  %>%
+  filter(SUMLEV == "750")             %>%
+  head
+```
+
+### Store as an RData file
+
+Placing the file in an RData format will speed up future use of this file.
+
+```{r store}
+clist <- c(
+  "20091",
+  "20103",
+  "20209",
+  "29037",
+  "29047",
+  "29095",
+  "29165")
+red1                                   %>%
+  bind_rows(red2)                      %>%
+  filter(BLOCK != "")                  %>%
+  mutate(GEOID=str_sub(GEOID, 10, 24)) %>%
+  mutate(
+    county_fips=
+      str_sub(GEOID,  1,  5))          %>%
+  filter(county_fips %in% clist)       %>%
+  select(
+    GEOID,
+    POP100,
+    HU100)                             %>%
+  mutate(
+    statefp=
+      str_sub(GEOID,  1,  2))          %>%
+  mutate(
+    countyfp=
+      str_sub(GEOID,  3,  5))          %>%
+  mutate(
+    tract=
+      str_sub(GEOID,  6, 11))          %>%
+  mutate(
+    block=
+      str_sub(GEOID, 12, 15))           -> red
+glimpse(red)
+save(red, file="../data/red.RData")
+```

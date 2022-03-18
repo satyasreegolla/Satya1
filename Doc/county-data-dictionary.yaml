@@ -1,0 +1,80 @@
+---
+data_dictionary: tl_2021_us_county.zip
+
+authors: Satya Golla and Steve Simon
+
+copyright:  
+  Not directly stated, but this file should
+  be in the public domain.
+
+creation_date: Unknown
+
+description:  
+  Shapefiles for every county in the United
+  States.
+
+download: 
+  https://www2.census.gov/geo/tiger/TIGER2021/COUNTY/
+
+format: 
+  proprietary: Shapefile (zip)
+
+  missing-value-code: not needed
+
+  rows: <<positive integer>>
+
+  columns: <<positive integer>>
+
+source:
+  U.S. Census Bureau
+
+vars:
+  STATEFP:
+    label: State FIPS code
+    scale: two digit integer with leading zero
+
+  COUNTYFP: 
+    label: County FIPS code
+    scale: three digit integer with leading zeros
+  
+  COUNTYNS:
+    label: Unknown
+    
+  GEOID: 
+    label: Geographic ID
+    
+  NAME:
+    label: County name
+    
+  NAMELSAD: 
+    label: Longer county name
+    
+  MTFCC:
+    label: Unknown
+    
+  CSAFP:
+    label: Unknown
+    
+  CBSAFP:
+    label: Unknown
+    
+  METDIVFP:
+    label: Unknown
+    
+  FUNCSTAT:
+    label: Unknown
+    
+  ALAND:
+    label: Land area
+    unit: square meters
+  
+  WATER:
+    label: Water area
+    unit: square meters
+    
+  INTPTLAT:
+    label: Latitude of an interior point
+    
+  INTPTLON:
+    label: Longitude of an interior point
+---

@@ -1,0 +1,85 @@
+---
+data_dictionary: tl_2020_xxxxx_tabblock10.zip
+
+authors: Satya Golla and Steve Simon
+
+copyright:  
+  Not directly stated, but this file should
+  be in the public domain.
+
+creation_date: Unknown
+
+description:  
+  Shapefiles for every blocks for every county
+  in the United States. Replace xxxxx with the
+  FIPS code for each county.
+
+download: 
+  https://www2.census.gov/geo/tiger/TIGER2020PL/STATE/
+
+format: 
+  proprietary: Shapefile (zip)
+
+  missing-value-code: not needed
+
+  rows: varies by county
+
+  columns: <<positive integer>>
+
+source:
+  U.S. Census Bureau
+
+vars:
+  STATEFP20:
+    label: State FIPS code
+    scale: two digit integer with leading zero
+
+  COUNTYFP20: 
+    label: County FIPS code
+    scale: three digit integer with leading zeros
+
+  TRACTCE20: 
+    label: Census tract number
+    scale: six digit integer with leading zeros
+    
+  BLOCKCE20: 
+    label: Census block number
+    scale: four digit integer with leading zeros
+
+  GEOID20: 
+    label: Geographic ID
+    scale: fifteen digit integer with leading zeros
+    
+  NAME20:
+    label: Census block
+    scale: Alphanumeric block name
+    
+  MTFCC20:
+    label: Unknown
+    
+  UR20:
+    label: Unknown
+  
+  UACE20:
+    label: Unknown
+  
+  UATYPE20:
+    label: Unknown
+  
+  FUNCSTAT20:
+    label: Unknown
+  
+  ALAND:
+    label: Land area
+    unit: square meters
+  
+  WATER:
+    label: Water area
+    unit: square meters
+    
+  INTPTLAT:
+    label: Latitude of an interior point
+    
+  INTPTLON:
+    label: Longitude of an interior point
+---

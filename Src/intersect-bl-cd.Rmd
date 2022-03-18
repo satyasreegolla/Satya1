@@ -1,0 +1,104 @@
+---
+title: "Calculate intersection of blocks and community districts"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-11"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })
+---
+
+This program will calculate which census blocks intersect with which community districts. It relies on information stored in
+
++ bl.RData
++ cd.RData
++ red.RData
+
+### General information
+
+For information about various files, refer to the files that stored the relevant data (e.g., store_block_information.Rmd).
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Wyandotte County, KS (20209)
+
+### Load relevant files
+
+```{r setup}
+library(sf)
+library(tidyverse)
+library(magrittr)
+path_name <- "../data/"
+```
+
+### Revise and simplify redistricting information
+
+```{r revise-red}
+load(paste0(path_name, "red", ".RData"))
+red                                      %>%
+  select(-GEOID)                          -> rev_red
+```
+
+### Revise and simplify block information
+
+```{r revise-block}
+load(paste0(path_name, "bl", ".RData"))
+bl                                       %>%
+  select(
+    statefp,
+    countyfp,
+    tract,
+    block,
+    block_area,
+    geometry)                            %>%
+  full_join(rev_red,
+    by=c(
+      "statefp",
+      "countyfp",
+      "tract",
+      "block"))                           -> rev_bl
+glimpse(rev_bl)
+```
+
+### Revise and simplify community information
+
+```{r revise-cd}
+load(paste0(path_name, "cd", ".RData"))
+cd                                       %>%
+  rename(cd_id=CD_ID)                    %>%
+  select(
+    cd_id,
+    geometry)                            %>%
+  mutate(
+    cd_area=
+      as.numeric(st_area(cd)))            -> rev_cd
+glimpse(rev_cd)
+```
+
+### Intersect blocks and community districts
+
+```{r intersect}
+rev_bl                                   %>%
+  st_intersection(rev_cd)                 -> bl_cd
+bl_cd                                    %>%
+  mutate(
+    in_area=
+      as.numeric(st_area(bl_cd)))        %>%
+  mutate(
+    pct_in=
+      100*in_area/block_area)             -> bl_cd
+glimpse(bl_cd)
+```
+
+### Save the information in an RData file.
+
+```{r save}
+save(bl_cd, file="../Data/bl-cd.RData")
+```
