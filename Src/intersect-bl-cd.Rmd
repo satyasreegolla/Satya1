@@ -87,6 +87,9 @@ glimpse(rev_cd)
 ```{r intersect}
 rev_bl                                   %>%
   st_intersection(rev_cd)                 -> bl_cd
+```
+
+```{r calculate-areas}
 bl_cd                                    %>%
   mutate(
     in_area=

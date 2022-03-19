@@ -4,3 +4,8 @@
 .Ruserdata
 data/*.*
 data/bg/*.*
+data/bl/*.*
+data/cd/*.*
+data/co/*.*
+data/nbd/*.*
+data/red/*.*
