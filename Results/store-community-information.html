@@ -246,11 +246,12 @@ path_name                                %&gt;%
 </div>
 <div id="align-coordinate-reference-system" class="section level3">
 <h3>Align coordinate reference system</h3>
-<p>Use the same coordinate reference system that is found in the U.S. Census Bureau’s shapefiles.</p>
+<p>Use the same coordinate reference system that is found in the U.S. Census Bureau’s shapefiles. The st_zm function removes an unneeded z dimension.</p>
 <pre class="r"><code>load(&quot;../Data/bl.RData&quot;)
 shape1                                   %&gt;%
   mutate(label=CD_NAME)                  %&gt;%
-  st_transform(crs=st_crs(bl))            -&gt; cd</code></pre>
+  st_transform(crs=st_crs(bl))           %&gt;%
+  st_zm                                   -&gt; cd</code></pre>
 </div>
 <div id="store-as-an-rdata-file" class="section level3">
 <h3>Store as an RData file</h3>

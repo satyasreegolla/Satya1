@@ -87,7 +87,7 @@ map_overlap <- function(shape1, shape2) {
 ### Intersect counties with community districts
 
 ```{r county-cd}
-load(paste0(path_name, "county", ".RData"))
+load(paste0(path_name, "co", ".RData"))
 load(paste0(path_name, "cd", ".RData"))
 n <- 1:dim(cd)[1]
 n <- 3
@@ -110,10 +110,11 @@ for (i in n) {
 ### Intersect community districts with census blocks
 
 ```{r cd-block}
-load(paste0(path_name, "block", ".RData"))
+load(paste0(path_name, "bl", ".RData"))
 n <- 1:dim(cd)[1]
+n <- 1:3
 for (i in n) {
-  map_overlap(cd[i, ], block) %>% print
+  map_overlap(cd[i, ], bl) %>% print
 }
 ```
 

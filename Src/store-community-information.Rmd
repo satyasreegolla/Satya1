@@ -37,13 +37,14 @@ shape1                                   %>%
 
 ### Align coordinate reference system
 
-Use the same coordinate reference system that is found in the U.S. Census Bureau's shapefiles.
+Use the same coordinate reference system that is found in the U.S. Census Bureau's shapefiles. The st_zm function removes an unneeded z dimension.
 
 ```{r align}
 load("../Data/bl.RData")
 shape1                                   %>%
   mutate(label=CD_NAME)                  %>%
-  st_transform(crs=st_crs(bl))            -> cd
+  st_transform(crs=st_crs(bl))           %>%
+  st_zm                                   -> cd
 ```
 
 ### Store as an RData file
