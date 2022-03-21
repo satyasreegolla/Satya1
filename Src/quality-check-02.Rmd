@@ -1,5 +1,5 @@
 ---
-title: "Quality check 01, Mismatches"
+title: "Quality check 02, Partial intersections of blocks and community districts"
 author: "Satya Golla and Steve Simon"
 date: "Created 2022-03-14"
 output: html_document
