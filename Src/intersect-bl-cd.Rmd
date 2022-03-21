@@ -43,12 +43,12 @@ load(paste0(path_name, "cd", ".RData"))
 
 ### Intersect blocks and community districts
 
-```{r intersect}
+```{r join}
 bl                                     %>%
   full_join(red, by="bl_id")            -> bl_red
 ```
 
-```{r join}
+```{r intersect}
 bl_red                                 %>%
   st_intersection(cd)                   -> bl_red_cd
 ```
@@ -60,7 +60,7 @@ bl_red_cd                              %>%
       as.numeric(st_area(bl_red_cd)))  %>%
   mutate(
     pct_in=
-      100*in_area/block_area)           -> icd
+      100*in_area/bl_area)              -> icd
 glimpse(icd)
 ```
 
