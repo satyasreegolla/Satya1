@@ -299,10 +299,11 @@ path_name                              %&gt;%
   read.delim(
     header=FALSE, 
     colClasses=&quot;character&quot;, 
-    sep=&quot;|&quot;)                            -&gt; red1
+    sep=&quot;|&quot;)                           -&gt; red1
 names(red1) &lt;- vnames
 red1                                  %&gt;%
-  filter(SUMLEV == &quot;750&quot;)             %&gt;%
+  filter(SUMLEV == &quot;750&quot;)              -&gt; red1
+red1                                  %&gt;%
   head</code></pre>
 <pre><code>##   FILEID STUSAB SUMLEV GEOVAR GEOCOMP CHARITER CIFSN LOGRECNO
 ## 1   PLST     KS    750     00      00      000    00  0087484
@@ -390,10 +391,11 @@ path_name                              %&gt;%
   read.delim(
     header=FALSE, 
     colClasses=&quot;character&quot;, 
-    sep=&quot;|&quot;)                            -&gt; red2
+    sep=&quot;|&quot;)                           -&gt; red2
 names(red2) &lt;- vnames
 red2                                  %&gt;%
-  filter(SUMLEV == &quot;750&quot;)             %&gt;%
+  filter(SUMLEV == &quot;750&quot;)              -&gt; red2
+red2                                  %&gt;%
   head</code></pre>
 <pre><code>##   FILEID STUSAB SUMLEV GEOVAR GEOCOMP CHARITER CIFSN LOGRECNO
 ## 1   PLST     MO    750     00      00      000    00  0126110
@@ -498,19 +500,19 @@ red1                                   %&gt;%
   rename(block_lon=INTPTLON)           %&gt;%
   mutate(
     st_id=
-      str_sub(GEOID, 1,  2))           %&gt;%
+      str_sub(GEOCODE, 1,  2))         %&gt;%
   mutate(
     co_id=
-      str_sub(GEOID, 1,  5))           %&gt;%
+      str_sub(GEOCODE, 1,  5))         %&gt;%
   mutate(
     tr_id=
-      str_sub(GEOID, 1, 11))           %&gt;%
+      str_sub(GEOCODE, 1, 11))         %&gt;%
   mutate(
     bg_id=
-      str_sub(GEOID, 1, 12))           %&gt;%
+      str_sub(GEOCODE, 1, 12))         %&gt;%
   mutate(
     bl_id=
-      str_sub(GEOID, 1, 15))           %&gt;%
+      str_sub(GEOCODE, 1, 15))         %&gt;%
   select(
     st_id,
     co_id,
@@ -526,11 +528,11 @@ red1                                   %&gt;%
 glimpse(red)</code></pre>
 <pre><code>## Rows: 39,903
 ## Columns: 11
-## $ st_id         &lt;chr&gt; &quot;75&quot;, &quot;75&quot;, &quot;75&quot;, &quot;75&quot;, &quot;75&quot;, &quot;75&quot;, &quot;75&quot;, &quot;75&quot;, &quot;75&quot;, &quot;7~
-## $ co_id         &lt;chr&gt; &quot;75000&quot;, &quot;75000&quot;, &quot;75000&quot;, &quot;75000&quot;, &quot;75000&quot;, &quot;75000&quot;, &quot;7~
-## $ tr_id         &lt;chr&gt; &quot;7500000US20&quot;, &quot;7500000US20&quot;, &quot;7500000US20&quot;, &quot;7500000US2~
-## $ bg_id         &lt;chr&gt; &quot;7500000US200&quot;, &quot;7500000US200&quot;, &quot;7500000US200&quot;, &quot;7500000~
-## $ bl_id         &lt;chr&gt; &quot;7500000US200910&quot;, &quot;7500000US200910&quot;, &quot;7500000US200910&quot;,~
+## $ st_id         &lt;chr&gt; &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;2~
+## $ co_id         &lt;chr&gt; &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;2~
+## $ tr_id         &lt;chr&gt; &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;2009105000~
+## $ bg_id         &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;2009105~
+## $ bl_id         &lt;chr&gt; &quot;200910500001000&quot;, &quot;200910500001001&quot;, &quot;200910500001002&quot;,~
 ## $ people        &lt;chr&gt; &quot;52&quot;, &quot;47&quot;, &quot;51&quot;, &quot;58&quot;, &quot;138&quot;, &quot;68&quot;, &quot;35&quot;, &quot;81&quot;, &quot;39&quot;, &quot;~
 ## $ housing_units &lt;chr&gt; &quot;33&quot;, &quot;29&quot;, &quot;27&quot;, &quot;26&quot;, &quot;70&quot;, &quot;34&quot;, &quot;18&quot;, &quot;28&quot;, &quot;12&quot;, &quot;1~
 ## $ land_area     &lt;chr&gt; &quot;27826&quot;, &quot;26904&quot;, &quot;26385&quot;, &quot;27075&quot;, &quot;74489&quot;, &quot;58378&quot;, &quot;2~

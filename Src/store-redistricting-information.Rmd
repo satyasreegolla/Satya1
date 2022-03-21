@@ -140,10 +140,11 @@ path_name                              %>%
   read.delim(
     header=FALSE, 
     colClasses="character", 
-    sep="|")                            -> red1
+    sep="|")                           -> red1
 names(red1) <- vnames
 red1                                  %>%
-  filter(SUMLEV == "750")             %>%
+  filter(SUMLEV == "750")              -> red1
+red1                                  %>%
   head
 ```
 
@@ -156,10 +157,11 @@ path_name                              %>%
   read.delim(
     header=FALSE, 
     colClasses="character", 
-    sep="|")                            -> red2
+    sep="|")                           -> red2
 names(red2) <- vnames
 red2                                  %>%
-  filter(SUMLEV == "750")             %>%
+  filter(SUMLEV == "750")              -> red2
+red2                                  %>%
   head
 ```
 
@@ -190,19 +192,19 @@ red1                                   %>%
   rename(block_lon=INTPTLON)           %>%
   mutate(
     st_id=
-      str_sub(GEOID, 1,  2))           %>%
+      str_sub(GEOCODE, 1,  2))         %>%
   mutate(
     co_id=
-      str_sub(GEOID, 1,  5))           %>%
+      str_sub(GEOCODE, 1,  5))         %>%
   mutate(
     tr_id=
-      str_sub(GEOID, 1, 11))           %>%
+      str_sub(GEOCODE, 1, 11))         %>%
   mutate(
     bg_id=
-      str_sub(GEOID, 1, 12))           %>%
+      str_sub(GEOCODE, 1, 12))         %>%
   mutate(
     bl_id=
-      str_sub(GEOID, 1, 15))           %>%
+      str_sub(GEOCODE, 1, 15))         %>%
   select(
     st_id,
     co_id,

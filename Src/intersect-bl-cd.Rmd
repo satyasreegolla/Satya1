@@ -45,11 +45,19 @@ load(paste0(path_name, "cd", ".RData"))
 
 ```{r intersect}
 bl                                     %>%
-  full_join(red, by="bl_id")           %>%
-  st_intersection(cd)                  %>%
+  full_join(red, by="bl_id")            -> bl_red
+```
+
+```{r join}
+bl_red                                 %>%
+  st_intersection(cd)                   -> bl_red_cd
+```
+
+```{r calculate-area}
+bl_red_cd                              %>%
   mutate(
     in_area=
-      as.numeric(st_area(bl_cd)))      %>%
+      as.numeric(st_area(bl_red_cd)))  %>%
   mutate(
     pct_in=
       100*in_area/block_area)           -> icd
