@@ -206,94 +206,52 @@ pre code {
 <pre><code>## The following object is masked from &#39;package:tidyr&#39;:
 ## 
 ##     extract</code></pre>
-<pre class="r"><code>path_name &lt;- &quot;../data/&quot;</code></pre>
-</div>
-<div id="revise-and-simplify-redistricting-information" class="section level3">
-<h3>Revise and simplify redistricting information</h3>
-<pre class="r"><code>load(paste0(path_name, &quot;red&quot;, &quot;.RData&quot;))
-red                                      %&gt;%
-  select(-GEOID)                          -&gt; rev_red</code></pre>
-</div>
-<div id="revise-and-simplify-block-information" class="section level3">
-<h3>Revise and simplify block information</h3>
-<pre class="r"><code>load(paste0(path_name, &quot;bl&quot;, &quot;.RData&quot;))
-bl                                       %&gt;%
-  select(
-    statefp,
-    countyfp,
-    tract,
-    block,
-    block_area,
-    geometry)                            %&gt;%
-  full_join(rev_red,
-    by=c(
-      &quot;statefp&quot;,
-      &quot;countyfp&quot;,
-      &quot;tract&quot;,
-      &quot;block&quot;))                           -&gt; rev_bl
-glimpse(rev_bl)</code></pre>
-<pre><code>## Rows: 39,903
-## Columns: 8
-## $ statefp    &lt;chr&gt; &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;,~
-## $ countyfp   &lt;chr&gt; &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;09~
-## $ tract      &lt;chr&gt; &quot;051801&quot;, &quot;051400&quot;, &quot;051500&quot;, &quot;980003&quot;, &quot;980003&quot;, &quot;052505&quot;,~
-## $ block      &lt;chr&gt; &quot;2010&quot;, &quot;3006&quot;, &quot;2005&quot;, &quot;1009&quot;, &quot;1005&quot;, &quot;2007&quot;, &quot;1000&quot;, &quot;20~
-## $ block_area &lt;dbl&gt; 38500.823, 51711.677, 104537.047, 73933.762, 95854.528, 199~
-## $ POP100     &lt;chr&gt; &quot;24&quot;, &quot;66&quot;, &quot;73&quot;, &quot;0&quot;, &quot;0&quot;, &quot;298&quot;, &quot;0&quot;, &quot;225&quot;, &quot;69&quot;, &quot;123&quot;,~
-## $ HU100      &lt;chr&gt; &quot;10&quot;, &quot;29&quot;, &quot;36&quot;, &quot;0&quot;, &quot;0&quot;, &quot;152&quot;, &quot;0&quot;, &quot;85&quot;, &quot;28&quot;, &quot;70&quot;, &quot;~
-## $ geometry   &lt;POLYGON [°]&gt; POLYGON ((-94.64213 38.9774..., POLYGON ((-94.63966~</code></pre>
-</div>
-<div id="revise-and-simplify-community-information" class="section level3">
-<h3>Revise and simplify community information</h3>
-<pre class="r"><code>load(paste0(path_name, &quot;cd&quot;, &quot;.RData&quot;))
-cd                                       %&gt;%
-  rename(cd_id=CD_ID)                    %&gt;%
-  select(
-    cd_id,
-    geometry)                            %&gt;%
-  mutate(
-    cd_area=
-      as.numeric(st_area(cd)))            -&gt; rev_cd</code></pre>
-<pre><code>## st_as_s2(): dropping Z and/or M coordinate</code></pre>
-<pre class="r"><code>glimpse(rev_cd)</code></pre>
-<pre><code>## Rows: 59
-## Columns: 3
-## $ cd_id    &lt;dbl&gt; 106, 108, 113, 102, 129, 116, 114, 101, 105, 103, 107, 109, 1~
-## $ geometry &lt;POLYGON [°]&gt; POLYGON Z ((-94.52337 39.09..., POLYGON Z ((-94.50777~
-## $ cd_area  &lt;dbl&gt; 26153155, 10976557, 16888662, 20130732, 38311285, 24534575, 6~</code></pre>
+<pre class="r"><code>path_name &lt;- &quot;../data/&quot;
+load(paste0(path_name, &quot;red&quot;, &quot;.RData&quot;))
+load(paste0(path_name, &quot;bl&quot;, &quot;.RData&quot;))
+load(paste0(path_name, &quot;cd&quot;, &quot;.RData&quot;))</code></pre>
 </div>
 <div id="intersect-blocks-and-community-districts" class="section level3">
 <h3>Intersect blocks and community districts</h3>
-<pre class="r"><code>rev_bl                                   %&gt;%
-  st_intersection(rev_cd)                 -&gt; bl_cd</code></pre>
+<pre class="r"><code>bl                                     %&gt;%
+  full_join(red, by=&quot;bl_id&quot;)            -&gt; bl_red</code></pre>
+<pre class="r"><code>bl_red                                 %&gt;%
+  st_intersection(cd)                   -&gt; bl_red_cd</code></pre>
 <pre><code>## Warning: attribute variables are assumed to be spatially constant throughout all
 ## geometries</code></pre>
-<pre class="r"><code>bl_cd                                    %&gt;%
+<pre class="r"><code>bl_red_cd                              %&gt;%
   mutate(
     in_area=
-      as.numeric(st_area(bl_cd)))        %&gt;%
+      as.numeric(st_area(bl_red_cd)))  %&gt;%
   mutate(
     pct_in=
-      100*in_area/block_area)             -&gt; bl_cd
-glimpse(bl_cd)</code></pre>
+      100*in_area/bl_area)              -&gt; icd
+glimpse(icd)</code></pre>
 <pre><code>## Rows: 15,748
-## Columns: 12
-## $ statefp    &lt;chr&gt; &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;,~
-## $ countyfp   &lt;chr&gt; &quot;095&quot;, &quot;095&quot;, &quot;095&quot;, &quot;095&quot;, &quot;095&quot;, &quot;095&quot;, &quot;095&quot;, &quot;095&quot;, &quot;09~
-## $ tract      &lt;chr&gt; &quot;002300&quot;, &quot;006300&quot;, &quot;002200&quot;, &quot;002200&quot;, &quot;002200&quot;, &quot;002200&quot;,~
-## $ block      &lt;chr&gt; &quot;2014&quot;, &quot;2017&quot;, &quot;3001&quot;, &quot;3004&quot;, &quot;3005&quot;, &quot;3003&quot;, &quot;3007&quot;, &quot;10~
-## $ block_area &lt;dbl&gt; 14983.197, 9597.627, 18151.722, 18380.541, 17691.230, 17458~
-## $ POP100     &lt;chr&gt; &quot;62&quot;, &quot;0&quot;, &quot;22&quot;, &quot;26&quot;, &quot;42&quot;, &quot;49&quot;, &quot;43&quot;, &quot;0&quot;, &quot;12&quot;, &quot;20&quot;, &quot;~
-## $ HU100      &lt;chr&gt; &quot;18&quot;, &quot;0&quot;, &quot;9&quot;, &quot;18&quot;, &quot;22&quot;, &quot;22&quot;, &quot;14&quot;, &quot;0&quot;, &quot;1&quot;, &quot;10&quot;, &quot;4&quot;~
-## $ cd_id      &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106,~
-## $ cd_area    &lt;dbl&gt; 26153155, 26153155, 26153155, 26153155, 26153155, 26153155,~
-## $ geometry   &lt;GEOMETRY [°]&gt; POLYGON ((-94.5324 39.0887,..., POLYGON ((-94.5612~
-## $ in_area    &lt;dbl&gt; 14983.19694, 9597.62653, 18151.72239, 18380.54058, 17691.22~
-## $ pct_in     &lt;dbl&gt; 100.0000000, 100.0000000, 100.0000000, 100.0000000, 100.000~</code></pre>
+## Columns: 19
+## $ bl_id         &lt;chr&gt; &quot;290950023002014&quot;, &quot;290950063002017&quot;, &quot;290950022003001&quot;,~
+## $ bl_name       &lt;chr&gt; &quot;Block 2014&quot;, &quot;Block 2017&quot;, &quot;Block 3001&quot;, &quot;Block 3004&quot;, ~
+## $ bl_area       &lt;dbl&gt; 14983.197, 9597.627, 18151.722, 18380.541, 17691.230, 17~
+## $ st_id         &lt;chr&gt; &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;29&quot;, &quot;2~
+## $ co_id         &lt;chr&gt; &quot;29095&quot;, &quot;29095&quot;, &quot;29095&quot;, &quot;29095&quot;, &quot;29095&quot;, &quot;29095&quot;, &quot;2~
+## $ tr_id         &lt;chr&gt; &quot;29095002300&quot;, &quot;29095006300&quot;, &quot;29095002200&quot;, &quot;2909500220~
+## $ bg_id         &lt;chr&gt; &quot;290950023002&quot;, &quot;290950063002&quot;, &quot;290950022003&quot;, &quot;2909500~
+## $ people        &lt;chr&gt; &quot;62&quot;, &quot;0&quot;, &quot;22&quot;, &quot;26&quot;, &quot;42&quot;, &quot;49&quot;, &quot;43&quot;, &quot;0&quot;, &quot;12&quot;, &quot;20&quot;~
+## $ housing_units &lt;chr&gt; &quot;18&quot;, &quot;0&quot;, &quot;9&quot;, &quot;18&quot;, &quot;22&quot;, &quot;22&quot;, &quot;14&quot;, &quot;0&quot;, &quot;1&quot;, &quot;10&quot;, ~
+## $ land_area     &lt;chr&gt; &quot;14996&quot;, &quot;9606&quot;, &quot;18167&quot;, &quot;18396&quot;, &quot;17706&quot;, &quot;17473&quot;, &quot;32~
+## $ water_area    &lt;chr&gt; &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;~
+## $ block_lat     &lt;chr&gt; &quot;+39.0894021&quot;, &quot;+39.0439974&quot;, &quot;+39.0932160&quot;, &quot;+39.093298~
+## $ block_lon     &lt;chr&gt; &quot;-094.5318307&quot;, &quot;-094.5610343&quot;, &quot;-094.5240738&quot;, &quot;-094.52~
+## $ cd_id         &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 1~
+## $ cd_name       &lt;chr&gt; &quot;East Side&quot;, &quot;East Side&quot;, &quot;East Side&quot;, &quot;East Side&quot;, &quot;Eas~
+## $ cd_area       &lt;dbl&gt; 281713850, 281713850, 281713850, 281713850, 281713850, 2~
+## $ geometry      &lt;GEOMETRY [°]&gt; POLYGON ((-94.5324 39.0887,..., POLYGON ((-94.5~
+## $ in_area       &lt;dbl&gt; 14983.19694, 9597.62653, 18151.72239, 18380.54058, 17691~
+## $ pct_in        &lt;dbl&gt; 100.0000000, 100.0000000, 100.0000000, 100.0000000, 100.~</code></pre>
 </div>
 <div id="save-the-information-in-an-rdata-file." class="section level3">
 <h3>Save the information in an RData file.</h3>
-<pre class="r"><code>save(bl_cd, file=&quot;../Data/bl-cd.RData&quot;)</code></pre>
+<pre class="r"><code>save(icd, file=&quot;../Data/icd.RData&quot;)</code></pre>
 </div>
 
 

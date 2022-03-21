@@ -34,14 +34,14 @@ load(paste0(path_name, "bl", ".RData"))
 glimpse(bl)
 load(paste0(path_name, "cd", ".RData"))
 glimpse(cd)
-load(paste0(path_name, "bl-cd", ".RData"))
-glimpse(bl_cd)
+load(paste0(path_name, "icd", ".RData"))
+glimpse(icd)
 ```
 
 ### List blocks that are split between communities
 
 ```{r list}
-bl_cd                                  %>%
+icd                                    %>%
   mutate(dev=abs(pct_in-50))           %>%
   arrange(dev)                          -> dev
 dev                                    %>%
@@ -53,12 +53,9 @@ dev                                    %>%
 ```{r map}
 for (i in 1:500) {
   cd                                   %>%
-    filter(CD_ID==dev$cd_id[i])         -> cd_i
+    filter(cd_id==dev$cd_id[i])         -> cd_i
   bl                                   %>%
-    filter(statefp==dev$statefp[i])    %>%
-    filter(countyfp==dev$countyfp[i])  %>%
-    filter(tract==dev$tract[i])        %>%
-    filter(block==dev$block[i])         -> bl_i
+    filter(bl_id==dev$bl_id[i])         -> bl_i
   ti <- paste0(
     cd_i$CD_NAME, ", ",
     bl_i$NAME20, ", ",
