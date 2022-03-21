@@ -179,27 +179,42 @@ clist <- c(
 red1                                   %>%
   bind_rows(red2)                      %>%
   filter(BLOCK != "")                  %>%
-  mutate(GEOID=str_sub(GEOID, 10, 24)) %>%
+  filter(
+    paste0(STATE, COUNTY) 
+      %in% clist)                      %>%
+  rename(people=POP100)                %>%
+  rename(housing_units=HU100)          %>%
+  rename(land_area=AREALAND)           %>%
+  rename(water_area=AREAWATR)          %>%
+  rename(block_lat=INTPTLAT)           %>%
+  rename(block_lon=INTPTLON)           %>%
   mutate(
-    county_fips=
-      str_sub(GEOID,  1,  5))          %>%
-  filter(county_fips %in% clist)       %>%
+    st_id=
+      str_sub(GEOID, 1,  2))           %>%
+  mutate(
+    co_id=
+      str_sub(GEOID, 1,  5))           %>%
+  mutate(
+    tr_id=
+      str_sub(GEOID, 1, 11))           %>%
+  mutate(
+    bg_id=
+      str_sub(GEOID, 1, 12))           %>%
+  mutate(
+    bl_id=
+      str_sub(GEOID, 1, 15))           %>%
   select(
-    GEOID,
-    POP100,
-    HU100)                             %>%
-  mutate(
-    statefp=
-      str_sub(GEOID,  1,  2))          %>%
-  mutate(
-    countyfp=
-      str_sub(GEOID,  3,  5))          %>%
-  mutate(
-    tract=
-      str_sub(GEOID,  6, 11))          %>%
-  mutate(
-    block=
-      str_sub(GEOID, 12, 15))           -> red
+    st_id,
+    co_id,
+    tr_id,
+    bg_id,
+    bl_id,
+    people,
+    housing_units,
+    land_area,
+    water_area,
+    block_lat,
+    block_lon) -> red
 glimpse(red)
 save(red, file="../data/red.RData")
 ```

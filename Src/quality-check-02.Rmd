@@ -66,8 +66,8 @@ for (i in 1:500) {
   cd_i                                 %>%
     ggplot(aes())                       +
       geom_sf(
-        fill=NA, 
-        color="lightgreen")             +
+        fill="white", 
+        color="darkgreen")              +
       ggtitle(ti)                       +
       geom_sf(
         data=bl_i,
@@ -83,4 +83,3 @@ for (i in 1:500) {
 [c_general]: https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html
 
 [c_redistricting]: https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html
-

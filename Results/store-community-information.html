@@ -249,9 +249,25 @@ path_name                                %&gt;%
 <p>Use the same coordinate reference system that is found in the U.S. Census Bureau’s shapefiles. The st_zm function removes an unneeded z dimension.</p>
 <pre class="r"><code>load(&quot;../Data/bl.RData&quot;)
 shape1                                   %&gt;%
-  mutate(label=CD_NAME)                  %&gt;%
+  rename(cd_id=CD_ID)                    %&gt;%
+  rename(cd_name=CD_NAME)                %&gt;%
+  mutate(
+    cd_area=
+      as.numeric(st_area(shape1)))       %&gt;%
+  select(
+    cd_id,
+    cd_name,
+    cd_area,
+    geometry)                            %&gt;%
   st_transform(crs=st_crs(bl))           %&gt;%
-  st_zm                                   -&gt; cd</code></pre>
+  st_zm                                   -&gt; cd
+glimpse(cd)</code></pre>
+<pre><code>## Rows: 59
+## Columns: 4
+## $ cd_id    &lt;dbl&gt; 106, 108, 113, 102, 129, 116, 114, 101, 105, 103, 107, 109, 1~
+## $ cd_name  &lt;chr&gt; &quot;East Side&quot;, &quot;Old Northeast&quot;, &quot;Greater Downtown&quot;, &quot;Blue Valle~
+## $ cd_area  &lt;dbl&gt; 281713850, 118237219, 181920811, 216842678, 412671242, 264282~
+## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.52337 39.0941..., POLYGON ((-94.50777 3~</code></pre>
 </div>
 <div id="store-as-an-rdata-file" class="section level3">
 <h3>Store as an RData file</h3>

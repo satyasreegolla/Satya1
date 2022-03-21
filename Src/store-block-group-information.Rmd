@@ -9,3 +9,100 @@ knit: (function(inputFile, encoding) {
 ---
 
 This program will read in census block group files and store them in an RData file for later use.
+
+### General information
+
+The starting point for downloading most Census shapefiles is [here][c_general]. The ftp site is a bit more difficult to navigate, but leads you directly to the files that you want. 
+
+It helps to know the FIPS (Federal Information Processing System) codes for Kansas (20) and Missouri (29).
+
+Files with a postfix of "20" either in the filename or among some of the variable names indicates that the data or shapefile is from the 2020 Census. A postfix of "10" indicates that the data or shapefile is from the 2010 Census.
+
+The important counties for this program are
+
+Cass County, MO (29037)
+Clay County, MO (29047)
+Jackson County, MO (29095)
+Johnson County, KS (20091)
+Leavenworth County, KS (20103)
+Platte County, MO (29165)
+Wyandotte County, KS (20209)
+
+A census block group is a subdivision of a Census tract. These can be further subdivided into Census blocks.
+
+Use the st_read function from the [sf package][r_sf] to read in the data. You may need to convert the coordinate reference system. That uses the st_crs function, also of the sf package. Census blocks are uniquely identified by a two digit state FIPS code, a three digit county FIPS code, a six digit tract code, and a single digit block group code. These are combined into a twelve digit code, GEOID.
+
+```{r setup}
+library(sf)
+library(tidyverse)
+path_name <- "../data"
+```
+
+### Kansas block groups
+
+```{r read-ks}
+co_list <- c(
+  "091",
+  "103",
+  "209")
+file_name <- "bg/tl_2021_20_bg.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      %>%
+  filter(COUNTYFP %in% co_list)        -> bg_ks
+glimpse(bg_ks)
+bg_ks                                  %>%
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle(file_name)
+```
+
+### Missouri block groups
+
+```{r read-mo}
+co_list <- c(
+  "037",
+  "047",
+  "095",
+  "165")
+file_name <- "bg/tl_2021_29_bg.shp"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  st_read(stringsAsFactors=FALSE)      %>%
+  filter(COUNTYFP %in% co_list)         -> bg_mo
+glimpse(bg_mo)
+bg_mo                                  %>%
+   ggplot()                             +
+      geom_sf(aes())                    +
+      ggtitle(file_name)
+```
+
+### Combine Kansas and Missouri
+
+```{r combine}
+bg_ks                                  %>%
+  bind_rows(bg_mo)                      -> bg
+```
+
+### Rename variables
+
+```{r rename}
+bg                                     %>%
+  mutate(bg_id=GEOID)                  %>%
+  rename(bg_name=NAMELSAD)             %>%
+  mutate(
+    bg_area=
+      as.numeric(st_area(bg)))         %>%
+  select(
+    bg_id,
+    bg_name,
+    bg_area,
+    geometry)                           -> bg
+glimpse(bg)
+```
+
+### Store as RData
+
+```{r save}
+save(bg, file="../data/bg.RData")
+```

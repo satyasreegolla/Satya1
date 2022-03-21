@@ -36,72 +36,29 @@ library(sf)
 library(tidyverse)
 library(magrittr)
 path_name <- "../data/"
-```
-
-### Revise and simplify redistricting information
-
-```{r revise-red}
 load(paste0(path_name, "red", ".RData"))
-red                                      %>%
-  select(-GEOID)                          -> rev_red
-```
-
-### Revise and simplify block information
-
-```{r revise-block}
 load(paste0(path_name, "bl", ".RData"))
-bl                                       %>%
-  select(
-    statefp,
-    countyfp,
-    tract,
-    block,
-    block_area,
-    geometry)                            %>%
-  full_join(rev_red,
-    by=c(
-      "statefp",
-      "countyfp",
-      "tract",
-      "block"))                           -> rev_bl
-glimpse(rev_bl)
-```
-
-### Revise and simplify community information
-
-```{r revise-cd}
 load(paste0(path_name, "cd", ".RData"))
-cd                                       %>%
-  rename(cd_id=CD_ID)                    %>%
-  select(
-    cd_id,
-    geometry)                            %>%
-  mutate(
-    cd_area=
-      as.numeric(st_area(cd)))            -> rev_cd
-glimpse(rev_cd)
 ```
 
 ### Intersect blocks and community districts
 
 ```{r intersect}
-rev_bl                                   %>%
-  st_intersection(rev_cd)                 -> bl_cd
-```
-
-```{r calculate-areas}
-bl_cd                                    %>%
+bl                                     %>%
+  full_join(red, by="bl_id")           %>%
+  st_intersection(cd)                  %>%
   mutate(
     in_area=
-      as.numeric(st_area(bl_cd)))        %>%
+      as.numeric(st_area(bl_cd)))      %>%
   mutate(
     pct_in=
-      100*in_area/block_area)             -> bl_cd
-glimpse(bl_cd)
+      100*in_area/block_area)           -> icd
+glimpse(icd)
 ```
+
 
 ### Save the information in an RData file.
 
 ```{r save}
-save(bl_cd, file="../Data/bl-cd.RData")
+save(icd, file="../Data/icd.RData")
 ```

@@ -42,9 +42,19 @@ Use the same coordinate reference system that is found in the U.S. Census Bureau
 ```{r align}
 load("../Data/bl.RData")
 shape1                                   %>%
-  mutate(label=CD_NAME)                  %>%
+  rename(cd_id=CD_ID)                    %>%
+  rename(cd_name=CD_NAME)                %>%
+  mutate(
+    cd_area=
+      as.numeric(st_area(shape1)))       %>%
+  select(
+    cd_id,
+    cd_name,
+    cd_area,
+    geometry)                            %>%
   st_transform(crs=st_crs(bl))           %>%
   st_zm                                   -> cd
+glimpse(cd)
 ```
 
 ### Store as an RData file
