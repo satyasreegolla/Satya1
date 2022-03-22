@@ -24,6 +24,19 @@ load(paste0(path_name, "red", ".RData"))
 glimpse(red)
 load(paste0(path_name, "bg", ".RData"))
 glimpse(bg)
+load(paste0(path_name, "co", ".RData"))
+clist <- c(
+  "20091",
+  "20103",
+  "20209",
+  "29037",
+  "29047",
+  "29095",
+  "29165")
+co                                     %>%
+  filter(GEOID %in% clist)              -> co
+glimpse(co)
+
 ```
 
 ### Find community ids
@@ -34,41 +47,61 @@ icd                                    %>%
   distinct(cd_id)                      %>%
   arrange(cd_id)                       %>%
   pull(cd_id)                           -> cd_list
-for (i in cd_list) {
+```
+
+```{r functions}
+county_plot <- function(co, cd, i) {
+  cd %<>% filter(cd_id==i)
+  ggplot(co, aes())                     +
+    geom_sf(
+      fill=NA,
+      color="darkgreen")                +
+    ggtitle(cd$cd_name)                 +
+    geom_sf(
+      data=cd,
+      aes(),
+      fill="white",
+      color="darkred")                  -> plot_co
+  plot(plot_co)
+}
+
+extract_bg <- function(icd, i) {
   icd                                  %>%
-    filter(cd_id==i)                   %>%
     tibble                             %>%
+    filter(cd_id==i)                   %>%
     distinct(bg_id)                    %>%
     arrange(bg_id)                     %>%
-    pull(bg_id)                         -> bg_list
-  print(
-    paste(
-      i, 
-      paste(
-        bg_list, 
-        collapse=", "), 
-      sep=": "))
-  cd                                   %>%
-    filter(cd_id==i)                    -> cd_i
-  bg                                   %>%
-    filter(bg_id %in% bg_list)          -> bg_i
-  for (j in bg_list) {
-    bg_i %>% filter(bg_id==j) -> bg_j
-    ggplot(bg_i, aes())                   +
-      geom_sf(
-        fill=NA, 
-        color="lightgreen")                +
-      geom_sf(
-        data=cd_i,
-        aes(),
-        fill="white",
-        color="darkred")                   +
-      geom_sf(
-        data=bg_j, 
-        aes(),
-        fill="NA",
-        color="darkgreen")                 -> map1
-    plot(map1)  
+    pull(bg_id)                       
+}
+
+bg_plot <- function(cd, i, bg, bg_list, j) {
+  cd %<>% filter(cd_id==i)
+  bg %<>% filter(bg_id %in% bg_list)
+  ggplot(cd, aes())                     +
+    geom_sf(
+      fill="white",
+      color="darkred"
+    )                                   +
+    geom_sf(
+      data=bg,
+      aes(),
+      fill="NA",
+      color="lightgreen")               +
+    geom_sf(
+      data=slice(bg, j),
+      aes(),
+      fill="NA",
+      color="darkgreen")                -> plot_bg
+  plot(plot_bg)
+}
+```
+
+```{r loop}
+for (i in cd_list) {
+  county_plot(co, cd, i)
+  bg_list <- extract_bg(icd, i)
+  for (j in 1:length(bg_list)) {
+    bg_plot(cd, i, bg, bg_list, j)
   }
 }
 ```
