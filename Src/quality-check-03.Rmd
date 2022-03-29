@@ -115,7 +115,7 @@ bg_plot <- function(cd, i, bg, j, icd, bl_list) {
 ```
 
 ```{r loop}
-for (i in cd_list[1:5]) {
+for (i in cd_list) {
   county_plot(co, cd, i)
   bg_list <- extract_bg(icd, i)
   for (j in bg_list) {
