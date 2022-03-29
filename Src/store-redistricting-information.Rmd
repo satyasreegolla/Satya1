@@ -184,6 +184,8 @@ red1                                   %>%
   filter(
     paste0(STATE, COUNTY) 
       %in% clist)                      %>%
+  mutate(POP100=as.numeric(POP100))    %>%
+  mutate(HU100=as.numeric(HU100))      %>%
   rename(people=POP100)                %>%
   rename(housing_units=HU100)          %>%
   rename(land_area=AREALAND)           %>%

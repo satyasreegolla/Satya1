@@ -205,63 +205,45 @@ pre code {
 load(paste0(path_name, &quot;bl&quot;, &quot;.RData&quot;))
 glimpse(bl)</code></pre>
 <pre><code>## Rows: 39,903
-## Columns: 18
-## $ statefp    &lt;chr&gt; &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;,~
-## $ countyfp   &lt;chr&gt; &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;09~
-## $ tract      &lt;chr&gt; &quot;051801&quot;, &quot;051400&quot;, &quot;051500&quot;, &quot;980003&quot;, &quot;980003&quot;, &quot;052505&quot;,~
-## $ block      &lt;chr&gt; &quot;2010&quot;, &quot;3006&quot;, &quot;2005&quot;, &quot;1009&quot;, &quot;1005&quot;, &quot;2007&quot;, &quot;1000&quot;, &quot;20~
-## $ GEOID20    &lt;chr&gt; &quot;200910518012010&quot;, &quot;200910514003006&quot;, &quot;200910515002005&quot;, &quot;2~
-## $ NAME20     &lt;chr&gt; &quot;Block 2010&quot;, &quot;Block 3006&quot;, &quot;Block 2005&quot;, &quot;Block 1009&quot;, &quot;Bl~
-## $ MTFCC20    &lt;chr&gt; &quot;G5040&quot;, &quot;G5040&quot;, &quot;G5040&quot;, &quot;G5040&quot;, &quot;G5040&quot;, &quot;G5040&quot;, &quot;G504~
-## $ UR20       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,~
-## $ UACE20     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,~
-## $ UATYPE20   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,~
-## $ FUNCSTAT20 &lt;chr&gt; &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;,~
-## $ ALAND20    &lt;dbl&gt; 38533, 51754, 104623, 0, 95934, 199509, 30765, 354042, 7350~
-## $ AWATER20   &lt;dbl&gt; 0, 0, 0, 73995, 0, 0, 0, 1582, 0, 0, 0, 0, 111, 0, 19008, 1~
-## $ INTPTLAT20 &lt;chr&gt; &quot;+38.9760924&quot;, &quot;+38.9791667&quot;, &quot;+38.9778033&quot;, &quot;+38.9859944&quot;,~
-## $ INTPTLON20 &lt;chr&gt; &quot;-094.6412527&quot;, &quot;-094.6370261&quot;, &quot;-094.6291535&quot;, &quot;-094.80067~
-## $ label      &lt;chr&gt; &quot;200910518012010&quot;, &quot;200910514003006&quot;, &quot;200910515002005&quot;, &quot;2~
-## $ geometry   &lt;POLYGON [°]&gt; POLYGON ((-94.64213 38.9774..., POLYGON ((-94.63966~
-## $ block_area &lt;dbl&gt; 38500.823, 51711.677, 104537.047, 73933.762, 95854.528, 199~</code></pre>
+## Columns: 4
+## $ bl_id    &lt;chr&gt; &quot;200910518012010&quot;, &quot;200910514003006&quot;, &quot;200910515002005&quot;, &quot;200~
+## $ bl_name  &lt;chr&gt; &quot;Block 2010&quot;, &quot;Block 3006&quot;, &quot;Block 2005&quot;, &quot;Block 1009&quot;, &quot;Bloc~
+## $ bl_area  &lt;dbl&gt; 38500.823, 51711.677, 104537.047, 73933.762, 95854.528, 19934~
+## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.64213 38.9774..., POLYGON ((-94.63966 3~</code></pre>
 <pre class="r"><code>load(paste0(path_name, &quot;red&quot;, &quot;.RData&quot;))
 glimpse(red)</code></pre>
 <pre><code>## Rows: 39,903
-## Columns: 7
-## $ GEOID    &lt;chr&gt; &quot;200910500001000&quot;, &quot;200910500001001&quot;, &quot;200910500001002&quot;, &quot;200~
-## $ POP100   &lt;chr&gt; &quot;52&quot;, &quot;47&quot;, &quot;51&quot;, &quot;58&quot;, &quot;138&quot;, &quot;68&quot;, &quot;35&quot;, &quot;81&quot;, &quot;39&quot;, &quot;37&quot;, ~
-## $ HU100    &lt;chr&gt; &quot;33&quot;, &quot;29&quot;, &quot;27&quot;, &quot;26&quot;, &quot;70&quot;, &quot;34&quot;, &quot;18&quot;, &quot;28&quot;, &quot;12&quot;, &quot;11&quot;, &quot;~
-## $ statefp  &lt;chr&gt; &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;~
-## $ countyfp &lt;chr&gt; &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;, &quot;091&quot;~
-## $ tract    &lt;chr&gt; &quot;050000&quot;, &quot;050000&quot;, &quot;050000&quot;, &quot;050000&quot;, &quot;050000&quot;, &quot;050000&quot;, &quot;~
-## $ block    &lt;chr&gt; &quot;1000&quot;, &quot;1001&quot;, &quot;1002&quot;, &quot;1003&quot;, &quot;1004&quot;, &quot;1005&quot;, &quot;1006&quot;, &quot;1007~</code></pre>
-<pre class="r"><code># load(paste0(path_name, &quot;bl_cd&quot;, &quot;.RData&quot;))
-# glimpse(bl_cd)</code></pre>
+## Columns: 11
+## $ st_id         &lt;chr&gt; &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;2~
+## $ co_id         &lt;chr&gt; &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;2~
+## $ tr_id         &lt;chr&gt; &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;2009105000~
+## $ bg_id         &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;2009105~
+## $ bl_id         &lt;chr&gt; &quot;200910500001000&quot;, &quot;200910500001001&quot;, &quot;200910500001002&quot;,~
+## $ people        &lt;dbl&gt; 52, 47, 51, 58, 138, 68, 35, 81, 39, 37, 35, 51, 52, 106~
+## $ housing_units &lt;dbl&gt; 33, 29, 27, 26, 70, 34, 18, 28, 12, 11, 15, 17, 21, 49, ~
+## $ land_area     &lt;chr&gt; &quot;27826&quot;, &quot;26904&quot;, &quot;26385&quot;, &quot;27075&quot;, &quot;74489&quot;, &quot;58378&quot;, &quot;2~
+## $ water_area    &lt;chr&gt; &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;~
+## $ block_lat     &lt;chr&gt; &quot;+39.0427053&quot;, &quot;+39.0427081&quot;, &quot;+39.0426993&quot;, &quot;+39.042717~
+## $ block_lon     &lt;chr&gt; &quot;-094.6217603&quot;, &quot;-094.6228101&quot;, &quot;-094.6238297&quot;, &quot;-094.62~</code></pre>
 </div>
 <div id="calculate-mismatches" class="section level3">
 <h3>Calculate mismatches</h3>
 <pre class="r"><code>bl                                    %&gt;%
-  full_join(red,
-    by=c(
-      &quot;statefp&quot;,
-      &quot;countyfp&quot;,
-      &quot;tract&quot;,
-      &quot;block&quot;))                       %&gt;%
+  full_join(red, by=c(&quot;bl_id&quot;))       %&gt;%
   mutate(
     m_red=
-      as.numeric(is.na(POP100)))      %&gt;%
+      as.numeric(is.na(people)))      %&gt;%
   mutate(
-    m_bl=
-     as.numeric(is.na(NAME20)))       %&gt;%
+    m_bl=as.numeric(is.na(bl_name)))  %&gt;%
   mutate(m_code=m_red+2*m_bl)          -&gt; m
-table(m$m_code, m$statefp)</code></pre>
+table(m$m_code, m$st_id)</code></pre>
 <pre><code>##    
 ##        20    29
 ##   0 13793 26110</code></pre>
-<pre class="r"><code>table(m$m_code, m$countyfp)</code></pre>
+<pre class="r"><code>table(m$m_code, m$co_id)</code></pre>
 <pre><code>##    
-##       037   047   091   095   103   165   209
-##   0  3571  5222  8235 14842  2203  2475  3355</code></pre>
+##     20091 20103 20209 29037 29047 29095 29165
+##   0  8235  2203  3355  3571  5222 14842  2475</code></pre>
 <pre class="r"><code>m                                     %&gt;%
   ggplot(aes()) +
     geom_sf()</code></pre>

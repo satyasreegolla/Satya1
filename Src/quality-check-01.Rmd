@@ -3,6 +3,9 @@ title: "Quality check 01, Mismatches"
 author: "Satya Golla and Steve Simon"
 date: "Created 2022-03-14"
 output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
 ---
 
 This program examines mismatches between census blocks shape files and redistricting files.
@@ -40,21 +43,15 @@ glimpse(red)
 
 ```{r mismatch}
 bl                                    %>%
-  full_join(red,
-    by=c(
-      "statefp",
-      "countyfp",
-      "tract",
-      "block"))                       %>%
+  full_join(red, by=c("bl_id"))       %>%
   mutate(
     m_red=
-      as.numeric(is.na(POP100)))      %>%
+      as.numeric(is.na(people)))      %>%
   mutate(
-    m_bl=
-     as.numeric(is.na(NAME20)))       %>%
+    m_bl=as.numeric(is.na(bl_name)))  %>%
   mutate(m_code=m_red+2*m_bl)          -> m
-table(m$m_code, m$statefp)
-table(m$m_code, m$countyfp)
+table(m$m_code, m$st_id)
+table(m$m_code, m$co_id)
 m                                     %>%
   ggplot(aes()) +
     geom_sf()

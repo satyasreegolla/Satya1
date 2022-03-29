@@ -43,30 +43,53 @@ load(paste0(path_name, "cd", ".RData"))
 
 ### Intersect blocks and community districts
 
-```{r join}
-bl                                     %>%
-  full_join(red, by="bl_id")            -> bl_red
-```
 
 ```{r intersect}
-bl_red                                 %>%
-  st_intersection(cd)                   -> bl_red_cd
+bl                                     %>%
+  st_intersection(cd)                   -> b0
+glimpse(b0)
+b0                                     %>%
+  st_area                              %>%
+  as.numeric                           %>%
+  tibble                               %>%
+  set_names("in_area")                 %>%
+  bind_cols(b0)                        %>%
+  mutate(prop_in=in_area/bl_area)      %>%
+  select(bl_id, cd_id, prop_in)        %>%
+  full_join(red, by="bl_id")            -> b1
+glimpse(b1)
 ```
 
-```{r calculate-area}
-bl_red_cd                              %>%
+```{r calculate-weights}
+b1                                     %>%
+  replace_na(list(prop_in=0))          %>%
+  mutate(people_in=people*prop_in)     %>%
   mutate(
-    in_area=
-      as.numeric(st_area(bl_red_cd)))  %>%
-  mutate(
-    pct_in=
-      100*in_area/bl_area)              -> icd
-glimpse(icd)
-```
+    housing_units_in=
+      housing_units*prop_in)            -> b2
+glimpse(b2)
 
+b2                                     %>%
+  group_by(bg_id, cd_id)               %>%
+  summarize(
+    people_in=
+      round(sum(people_in)),
+    people=sum(people),
+    housing_units_in=
+      round(sum(housing_units_in)),
+    housing_units=sum(housing_units))  %>%
+  ungroup                              %>%
+  group_by(bg_id)                      %>%
+    mutate(
+      people=sum(people),
+      housing_units=sum(housing_units)) -> b3
+glimpse(b3)
+```
 
 ### Save the information in an RData file.
 
 ```{r save}
-save(icd, file="../Data/icd.RData")
+save(
+  b0, b1, b2, b3, 
+  file="../Data/weights.RData")
 ```

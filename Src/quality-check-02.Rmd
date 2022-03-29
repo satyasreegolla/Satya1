@@ -3,6 +3,9 @@ title: "Quality check 02, Partial intersections of blocks and community district
 author: "Satya Golla and Steve Simon"
 date: "Created 2022-03-14"
 output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
 ---
 
 This program examines blocks that only partially intersect with community districts.
@@ -30,19 +33,21 @@ library(sf)
 library(tidyverse)
 library(magrittr)
 path_name <- "../data/"
+load(paste0(path_name, "weights", ".RData"))
+glimpse(b0)
+glimpse(b1)
+glimpse(b2)
 load(paste0(path_name, "bl", ".RData"))
 glimpse(bl)
 load(paste0(path_name, "cd", ".RData"))
 glimpse(cd)
-load(paste0(path_name, "icd", ".RData"))
-glimpse(icd)
 ```
 
 ### List blocks that are split between communities
 
 ```{r list}
-icd                                    %>%
-  mutate(dev=abs(pct_in-50))           %>%
+b1                                     %>%
+  mutate(dev=abs(prop_in-0.5))         %>%
   arrange(dev)                          -> dev
 dev                                    %>%
   print(n=20)
@@ -57,9 +62,9 @@ for (i in 1:500) {
   bl                                   %>%
     filter(bl_id==dev$bl_id[i])         -> bl_i
   ti <- paste0(
-    cd_i$CD_NAME, ", ",
-    bl_i$NAME20, ", ",
-    round(dev$pct_in[i]), "%")
+    cd_i$cd_name, ", ",
+    bl_i$bl_name, ", ",
+    round(100*dev$prop_in[i]), "%")
   cd_i                                 %>%
     ggplot(aes())                       +
       geom_sf(
@@ -72,6 +77,21 @@ for (i in 1:500) {
         fill=NA,
         color="darkred")                -> map_i
   plot(map_i)
+  b0                                   %>%
+    filter(cd_id==dev$cd_id[i])        %>%
+    filter(bl_id==dev$bl_id[i])         -> b0_i
+  b0_i                                 %>%
+    ggplot(aes())                       +
+      geom_sf(
+        fill="white",
+        color="darkgreen")              +
+      ggtitle("Closeup view")           +
+      geom_sf(
+        data=bl_i,
+        aes(), 
+        fill=NA,
+        color="darkred")                -> closeup_i
+  plot(closeup_i)
 }
 ```
 

@@ -3,6 +3,9 @@ title: "Quality check 03, Block group intersections with community districts"
 author: "Satya Golla and Steve Simon"
 date: "Created 2022-03-21"
 output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
 ---
 
 This program examines tracts that only partially intersect with community districts.
@@ -18,8 +21,8 @@ load(paste0(path_name, "bl", ".RData"))
 glimpse(bl)
 load(paste0(path_name, "cd", ".RData"))
 glimpse(cd)
-load(paste0(path_name, "icd", ".RData"))
-glimpse(icd)
+load(paste0(path_name, "weights", ".RData"))
+glimpse(weights)
 load(paste0(path_name, "red", ".RData"))
 glimpse(red)
 load(paste0(path_name, "bg", ".RData"))
@@ -36,13 +39,12 @@ clist <- c(
 co                                     %>%
   filter(GEOID %in% clist)              -> co
 glimpse(co)
-
 ```
 
 ### Find community ids
 
 ```{r find}
-icd                                    %>%
+cd                                     %>%
   tibble                               %>%
   distinct(cd_id)                      %>%
   arrange(cd_id)                       %>%
@@ -55,72 +57,88 @@ county_plot <- function(co, cd, i) {
   ggplot(co, aes())                     +
     geom_sf(
       fill=NA,
-      color="darkgreen")                +
+      color="darkred")                  +
     ggtitle(cd$cd_name)                 +
     geom_sf(
       data=cd,
       aes(),
       fill="white",
-      color="darkred")                  -> plot_co
+      color="darkgreen")                -> plot_co
   plot(plot_co)
 }
 
-extract_bg <- function(icd, i) {
-  icd                                  %>%
+extract_bg <- function(b3, i) {
+  b3                                   %>%
     tibble                             %>%
     filter(cd_id==i)                   %>%
-    filter(pct_in > 2)                 %>%
     distinct(bg_id)                    %>%
     arrange(bg_id)                     %>%
     pull(bg_id)                       
 }
 
-extract_bl <- function(icd, i, j) {
-  icd                                  %>%
+extract_bl <- function(b1, i, j) {
+  b1                                   %>%
     tibble                             %>%
     filter(cd_id==i)                   %>%
     filter(bg_id==j)                   %>%
-    filter(pct_in > 2)                 %>%
     distinct(bl_id)                    %>%
     arrange(bl_id)                     %>%
     pull(bl_id)                       
 }
 
 
-bg_plot <- function(cd, i, bg, j, icd, bl_list) {
-  cd_filter <- cd$cd_id==i
-  bg_filter <- bg$bg_id==j
-  bl_filter <- icd$bg_id==j & icd$bl_id %in% bl_list
-  s1 <- filter(cd, cd_filter)
-  s2 <- filter(bg, bg_filter)
-  s3 <- filter(icd, bl_filter)
+bg_plot <- function(cd, i, bg, j, b3) {
+  s1 <- filter(cd, cd_id==i)
+  s2 <- filter(bg, bg_id==j)
+  s3 <- filter(b3, cd_id==i & bg_id==j)
+  ti <- paste0(
+    s3$bg_id, ", ",
+    s3$people_in, "/", 
+    s3$people, ", ",
+    s3$housing_units_in, "/", 
+    s3$housing_units)
   ggplot(s1, aes())                     +
     geom_sf(
       fill="white",
-      color="darkred",
-      size=2)                           +
+      color="darkgreen")                +
     geom_sf(
       data=s2,
       aes(),
-      fill="lightgreen",
-      color="darkgreen")                +
-    ggtitle(j)                          +
-    geom_sf(
-      data=s3,
-      aes(),
-      fill="pink",
-      color="darkred")                  -> plot_bg
+      fill=NA,
+      color="darkred")                  +
+    ggtitle(ti)                         -> plot_bg
   plot(plot_bg)
+}
+
+display_blocks <- function(b2, i, j) {
+  b2                                   %>%
+    filter(cd_id==i)                   %>%
+    filter(bg_id==j)                   %>%
+    mutate(prop_in=round(prop_in, 2))  %>%
+    mutate(
+      people_in=round(people_in))      %>%
+    mutate(
+      housing_units_in=
+        round(housing_units_in))       %>%
+    select(
+      bl_id,
+      prop_in,
+      people_in,
+      people,
+      housing_units_in,
+      housing_units)                   %>%
+    data.frame                         %>%
+    print
 }
 ```
 
 ```{r loop}
-for (i in cd_list) {
+for (i in cd_list[7]) {
   county_plot(co, cd, i)
-  bg_list <- extract_bg(icd, i)
+  bg_list <- extract_bg(b3, i)
   for (j in bg_list) {
-    bl_list <- extract_bl(icd, i, j)
-    bg_plot(cd, i, bg, j, icd, bl_list)
+    display_blocks(b2, i, j)
+    bg_plot(cd, i, bg, j, b3)
   }
 }
 ```
