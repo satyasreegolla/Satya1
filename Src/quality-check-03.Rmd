@@ -69,39 +69,58 @@ extract_bg <- function(icd, i) {
   icd                                  %>%
     tibble                             %>%
     filter(cd_id==i)                   %>%
+    filter(pct_in > 2)                 %>%
     distinct(bg_id)                    %>%
     arrange(bg_id)                     %>%
     pull(bg_id)                       
 }
 
-bg_plot <- function(cd, i, bg, bg_list, j) {
-  cd %<>% filter(cd_id==i)
-  bg %<>% filter(bg_id %in% bg_list)
-  ggplot(cd, aes())                     +
+extract_bl <- function(icd, i, j) {
+  icd                                  %>%
+    tibble                             %>%
+    filter(cd_id==i)                   %>%
+    filter(bg_id==j)                   %>%
+    filter(pct_in > 2)                 %>%
+    distinct(bl_id)                    %>%
+    arrange(bl_id)                     %>%
+    pull(bl_id)                       
+}
+
+
+bg_plot <- function(cd, i, bg, j, icd, bl_list) {
+  cd_filter <- cd$cd_id==i
+  bg_filter <- bg$bg_id==j
+  bl_filter <- icd$bg_id==j & icd$bl_id %in% bl_list
+  s1 <- filter(cd, cd_filter)
+  s2 <- filter(bg, bg_filter)
+  s3 <- filter(icd, bl_filter)
+  ggplot(s1, aes())                     +
     geom_sf(
       fill="white",
-      color="darkred"
-    )                                   +
+      color="darkred",
+      size=2)                           +
     geom_sf(
-      data=bg,
+      data=s2,
       aes(),
-      fill="NA",
-      color="lightgreen")               +
+      fill="lightgreen",
+      color="darkgreen")                +
+    ggtitle(j)                          +
     geom_sf(
-      data=slice(bg, j),
+      data=s3,
       aes(),
-      fill="NA",
-      color="darkgreen")                -> plot_bg
+      fill="pink",
+      color="darkred")                  -> plot_bg
   plot(plot_bg)
 }
 ```
 
 ```{r loop}
-for (i in cd_list) {
+for (i in cd_list[1:5]) {
   county_plot(co, cd, i)
   bg_list <- extract_bg(icd, i)
-  for (j in 1:length(bg_list)) {
-    bg_plot(cd, i, bg, bg_list, j)
+  for (j in bg_list) {
+    bl_list <- extract_bl(icd, i, j)
+    bg_plot(cd, i, bg, j, icd, bl_list)
   }
 }
 ```
