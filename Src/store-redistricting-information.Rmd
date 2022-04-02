@@ -133,6 +133,8 @@ vnames <- c(
 
 ### Read Kansas redistricting files
 
+Setting SUMLEV=="750" produces information for individual census blocks. Setting it to SUM=="150" produce information for individual block groups.
+
 ```{r read-ks}
 file_name <- "red/ksgeo2020.pl"
 path_name                              %>%

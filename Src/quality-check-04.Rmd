@@ -1,0 +1,203 @@
+---
+title: "Quality check 04, Summing block data to block group level"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-04-02"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+Redistricing data has information about Census blocks (SUMLEV=750), block groups (SUMLEV=150), Census tracts (SUMLEV=140) and counties (SUMLEV=050). Do the POP100 and HU100 values sum up properly from the lowest level of the Census hierarchy to higher levels?
+
+For more information, see [this pdf file][sumlev].
+
+### Setup
+
+```{r setup}
+library(sf)
+library(tidyverse)
+path_name <- "../data"
+vnames <- c(
+  "FILEID", 
+  "STUSAB", 
+  "SUMLEV", 
+  "GEOVAR", 
+  "GEOCOMP", 
+  "CHARITER", 
+  "CIFSN", 
+  "LOGRECNO", 
+  "GEOID", 
+  "GEOCODE",
+  "REGION",
+  "DIVISION",
+  "STATE",
+  "STATENS",
+  "COUNTY",
+  "COUNTYCC",
+  "COUNTYNS",
+  "COUSUB",
+  "COUSUBCC",
+  "COUSUBNS",
+  "SUBMCD",
+  "SUBMCDCC",
+  "SUBMCDNS",
+  "ESTATE",
+  "ESTATECC",
+  "ESTATENS", 
+  "CONCIT",
+  "CONCITCC",
+  "CONCITNS",
+  "PLACE",
+  "PLACECC",
+  "PLACENS",
+  "TRACT",
+  "BLKGRP",
+  "BLOCK", 
+  "AIANHH",
+  "AIHHTLI",
+  "AIANHHFP",
+  "AIANHHCC",
+  "AIANHHNS",
+  "AITS",
+  "AITSFP",
+  "AITSCC",
+  "AITSNS",
+  "TTRACT",
+  "TBLKGRP",
+  "ANRC",
+  "ANRCCC",
+  "ANRCNS",
+  "CBSA",
+  "MEMI",
+  "CSA",
+  "METDIV",
+  "NECTA",
+  "NMEMI",
+  "CNECTA",
+  "NECTADIV",
+  "CBSAPCI",
+  "NECTAPCI",
+  "UA",
+  "UATYPE",
+  "UR",
+  "CD116",
+  "CD118",
+  "CD119", 
+  "CD120", 
+  "CD121", 
+  "SLDU18", 
+  "SLDU22", 
+  "SLDU24", 
+  "SLDU26", 
+  "SLDU28", 
+  "SLDL18", 
+  "SLDL22",
+  "SLDL24",
+  "SLDL26",
+  "SLDL28",
+  "VTD",
+  "VTDI",
+  "ZCTA",
+  "SDELM",
+  "SDSEC",
+  "SDUNI",
+  "PUMA",
+  "AREALAND",
+  "AREAWATR",
+  "BASENAME",
+  "NAME",
+  "FUNCSTAT",
+  "GCUNI",
+  "POP100",
+  "HU100",
+  "INTPTLAT",
+  "INTPTLON",
+  "LSADC",
+  "PARTFLAG",
+  "UGA")
+```
+
+```{r read-ks}
+file_name <- "red/ksgeo2020.pl"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  read.delim(
+    header=FALSE, 
+    colClasses="character", 
+    sep="|")                           -> red1
+names(red1) <- vnames
+```
+
+### Read Missouri redistricting files
+
+```{r read-mo}
+file_name <- "red/mogeo2020.pl"
+path_name                              %>%
+  paste(file_name, sep="/")            %>%
+  read.delim(
+    header=FALSE, 
+    colClasses="character", 
+    sep="|")                           -> red2
+names(red2) <- vnames
+```
+
+### Combine and extract block information
+
+```{r combine}
+red1                                   %>%
+  bind_rows(red2)                      %>%
+  mutate(POP100=as.numeric(POP100))    %>%
+  mutate(HU100=as.numeric(HU100))       -> red
+
+red                                    %>%
+  filter(SUMLEV=="750")                %>%
+  rename(bl_id=GEOCODE)                %>%
+  rename(bl_people=POP100)             %>%
+  rename(bl_housing_units=HU100)       %>%
+  mutate(bg_id=str_sub(bl_id, 1, 12))  %>%
+  select(
+    bl_id, 
+    bg_id, 
+    bl_people, 
+    bl_housing_units)                    -> red_bl
+```
+
+### Extract block group information
+
+```{r extract-bg}
+red                                    %>%
+  filter(SUMLEV=="150")                %>%
+  rename(bg_id=GEOCODE)                %>%
+  rename(bg_people=POP100)             %>%
+  rename(bg_housing_units=HU100)       %>%
+  select(
+    bg_id, 
+    bg_people, 
+    bg_housing_units)                   -> red_bg
+```
+
+### Compare block totals to block groups
+
+```{r compare}
+red_bl                                 %>%
+  group_by(bg_id)                      %>%
+  summarize(
+    bl_people=sum(bl_people),
+    bl_housing_units=
+      sum(bl_housing_units))           %>%
+  full_join(red_bg, by="bg_id")        %>%
+  mutate(
+    diff_people=bl_people-bg_people)   %>%
+  mutate(
+    diff_housing_units=
+      bl_housing_units - 
+      bg_housing_units)                 -> red_diff
+head(red_diff[ , -1])
+table(red_diff$diff_people)
+table(red_diff$diff_housing_units)
+```
+
+<!---Key census links go here--->
+
+[sumlev]: https://www2.census.gov/programs-surveys/decennial/rdo/about/2020-census-program/Phase3/SupportMaterials/FrequentSummaryLevels.pdf
