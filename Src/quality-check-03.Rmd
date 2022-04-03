@@ -33,7 +33,11 @@ glimpse(co)
 load(paste0(path_name, "red", ".RData"))
 glimpse(red)
 
-load(paste0(path_name, "cd_weights", ".RData"))
+load(paste0(path_name, "cd-intersections", ".RData"))
+glimpse(bg_cd_intersection)
+glimpse(bl_cd_intersection)
+
+load(paste0(path_name, "cd-weights", ".RData"))
 glimpse(bg_counts)
 glimpse(bg_list)
 glimpse(bl_counts)
@@ -97,14 +101,15 @@ extract_bl <- function(bl_list, j) {
 }
 
 bg_plot <- function(cd, i, bg, j) {
+  ti <- j
   cd_i <- filter(cd, cd_id==i)
   bg_j <- filter(bg, bg_id==j)
-  ggplot(cd_i, aes())                     +
+  ggplot(cd_i, aes())                   +
     geom_sf(
       fill="lightgreen",
       color="darkgreen")                +
     geom_sf(
-      data=s2,
+      data=bg_j,
       aes(),
       fill=NA,
       color="darkred")                  +
@@ -112,23 +117,14 @@ bg_plot <- function(cd, i, bg, j) {
   plot(plot_bg)
 }
 
-display_blocks <- function(b2, i, j) {
+display_blocks <- function(bl_counts, j) {
   bl_counts                            %>%
-    filter(cd_id==i)                   %>%
     filter(bg_id==j)                   %>%
-    mutate(prop_in=round(prop_in, 2))  %>%
-    mutate(
-      people_in=round(people_in))      %>%
-    mutate(
-      housing_units_in=
-        round(housing_units_in))       %>%
     select(
       bl_id,
       prop_in,
       people_in,
-      people,
-      housing_units_in,
-      housing_units)                   %>%
+      units_in)                        %>%
     data.frame                         %>%
     print
 }
@@ -147,7 +143,7 @@ for (i in cd_list[7]) {
   county_plot(co, cd, i)
   bg_list <- extract_bg(bl_counts, i)
   for (j in bg_list) {
-    # display_blocks(b2, i, j)
+    display_blocks(bl_counts, j)
     bg_plot(cd, i, bg, j)
   }
 }
