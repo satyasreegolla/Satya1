@@ -189,7 +189,7 @@ red1                                   %>%
   mutate(POP100=as.numeric(POP100))    %>%
   mutate(HU100=as.numeric(HU100))      %>%
   rename(people=POP100)                %>%
-  rename(housing_units=HU100)          %>%
+  rename(units=HU100)                  %>%
   rename(land_area=AREALAND)           %>%
   rename(water_area=AREAWATR)          %>%
   rename(block_lat=INTPTLAT)           %>%
@@ -210,17 +210,10 @@ red1                                   %>%
     bl_id=
       str_sub(GEOCODE, 1, 15))         %>%
   select(
-    st_id,
-    co_id,
-    tr_id,
     bg_id,
     bl_id,
     people,
-    housing_units,
-    land_area,
-    water_area,
-    block_lat,
-    block_lon) -> red
+    units) -> red
 glimpse(red)
 save(red, file="../data/red.RData")
 ```

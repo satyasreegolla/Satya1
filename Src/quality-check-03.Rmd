@@ -17,17 +17,29 @@ library(sf)
 library(tidyverse)
 library(magrittr)
 path_name <- "../data/"
-load(paste0(path_name, "bl", ".RData"))
-glimpse(bl)
-load(paste0(path_name, "cd", ".RData"))
-glimpse(cd)
-load(paste0(path_name, "weights", ".RData"))
-glimpse(weights)
-load(paste0(path_name, "red", ".RData"))
-glimpse(red)
+
 load(paste0(path_name, "bg", ".RData"))
 glimpse(bg)
+
+load(paste0(path_name, "bl", ".RData"))
+glimpse(bl)
+
+load(paste0(path_name, "cd", ".RData"))
+glimpse(cd)
+
 load(paste0(path_name, "co", ".RData"))
+glimpse(co)
+
+load(paste0(path_name, "red", ".RData"))
+glimpse(red)
+
+load(paste0(path_name, "weights", ".RData"))
+glimpse(bg_counts)
+glimpse(bg_list)
+glimpse(bl_counts)
+glimpse(bl_list)
+glimpse(cd_intersection)
+
 clist <- c(
   "20091",
   "20103",

@@ -293,6 +293,7 @@ vnames &lt;- c(
 </div>
 <div id="read-kansas-redistricting-files" class="section level3">
 <h3>Read Kansas redistricting files</h3>
+<p>Setting SUMLEV==“750” produces information for individual census blocks. Setting it to SUM==“150” produce information for individual block groups.</p>
 <pre class="r"><code>file_name &lt;- &quot;red/ksgeo2020.pl&quot;
 path_name                              %&gt;%
   paste(file_name, sep=&quot;/&quot;)            %&gt;%
@@ -495,7 +496,7 @@ red1                                   %&gt;%
   mutate(POP100=as.numeric(POP100))    %&gt;%
   mutate(HU100=as.numeric(HU100))      %&gt;%
   rename(people=POP100)                %&gt;%
-  rename(housing_units=HU100)          %&gt;%
+  rename(units=HU100)                  %&gt;%
   rename(land_area=AREALAND)           %&gt;%
   rename(water_area=AREAWATR)          %&gt;%
   rename(block_lat=INTPTLAT)           %&gt;%
@@ -516,31 +517,17 @@ red1                                   %&gt;%
     bl_id=
       str_sub(GEOCODE, 1, 15))         %&gt;%
   select(
-    st_id,
-    co_id,
-    tr_id,
     bg_id,
     bl_id,
     people,
-    housing_units,
-    land_area,
-    water_area,
-    block_lat,
-    block_lon) -&gt; red
+    units) -&gt; red
 glimpse(red)</code></pre>
 <pre><code>## Rows: 39,903
-## Columns: 11
-## $ st_id         &lt;chr&gt; &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;2~
-## $ co_id         &lt;chr&gt; &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;20091&quot;, &quot;2~
-## $ tr_id         &lt;chr&gt; &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;2009105000~
-## $ bg_id         &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;2009105~
-## $ bl_id         &lt;chr&gt; &quot;200910500001000&quot;, &quot;200910500001001&quot;, &quot;200910500001002&quot;,~
-## $ people        &lt;dbl&gt; 52, 47, 51, 58, 138, 68, 35, 81, 39, 37, 35, 51, 52, 106~
-## $ housing_units &lt;dbl&gt; 33, 29, 27, 26, 70, 34, 18, 28, 12, 11, 15, 17, 21, 49, ~
-## $ land_area     &lt;chr&gt; &quot;27826&quot;, &quot;26904&quot;, &quot;26385&quot;, &quot;27075&quot;, &quot;74489&quot;, &quot;58378&quot;, &quot;2~
-## $ water_area    &lt;chr&gt; &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;~
-## $ block_lat     &lt;chr&gt; &quot;+39.0427053&quot;, &quot;+39.0427081&quot;, &quot;+39.0426993&quot;, &quot;+39.042717~
-## $ block_lon     &lt;chr&gt; &quot;-094.6217603&quot;, &quot;-094.6228101&quot;, &quot;-094.6238297&quot;, &quot;-094.62~</code></pre>
+## Columns: 4
+## $ bg_id  &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;,~
+## $ bl_id  &lt;chr&gt; &quot;200910500001000&quot;, &quot;200910500001001&quot;, &quot;200910500001002&quot;, &quot;20091~
+## $ people &lt;dbl&gt; 52, 47, 51, 58, 138, 68, 35, 81, 39, 37, 35, 51, 52, 106, 45, 8~
+## $ units  &lt;dbl&gt; 33, 29, 27, 26, 70, 34, 18, 28, 12, 11, 15, 17, 21, 49, 20, 39,~</code></pre>
 <pre class="r"><code>save(red, file=&quot;../data/red.RData&quot;)</code></pre>
 </div>
 

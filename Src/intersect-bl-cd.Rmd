@@ -10,6 +10,7 @@ knit: (function(inputFile, encoding) {
 
 This program will calculate which census blocks intersect with which community districts. It relies on information stored in
 
++ bg.RData
 + bl.RData
 + cd.RData
 + red.RData
@@ -36,60 +37,94 @@ library(sf)
 library(tidyverse)
 library(magrittr)
 path_name <- "../data/"
-load(paste0(path_name, "red", ".RData"))
+load(paste0(path_name, "bg", ".RData"))
 load(paste0(path_name, "bl", ".RData"))
 load(paste0(path_name, "cd", ".RData"))
+load(paste0(path_name, "red", ".RData"))
+```
+
+### Intersect block groups and community districts
+
+Identify the list of all block groups that partially or completely intersect with any community district.
+
+```{r intersect-bg}
+bg                                     %>%
+  st_intersection(cd)                  %>%
+  select(-geometry)                    %>%
+  pull(bg_id)                           -> bg_list
+glimpse(bg_list)
+```
+
+Now get a list of all census blocks that lie inside any of these block groups.
+
+```{r merge-blocks}
+bl                                     %>%
+  pull(bl_id)                          %>%
+  str_sub(1, 12)                       %>%
+  bind_cols(bl$bl_id)                  %>%
+  set_names(c("bg_id", "bl_id"))        -> bl_list
+glimpse(bl_list)
 ```
 
 ### Intersect blocks and community districts
 
 
-```{r intersect}
+```{r intersect-bl}
 bl                                     %>%
-  st_intersection(cd)                   -> b0
-glimpse(b0)
-b0                                     %>%
+  st_intersection(cd)                   -> cd_intersection
+glimpse(cd_intersection)
+```
+
+```{r calculate-proportions}
+cd_intersection                        %>%
   st_area                              %>%
   as.numeric                           %>%
   tibble                               %>%
   set_names("in_area")                 %>%
-  bind_cols(b0)                        %>%
+  bind_cols(cd_intersection)           %>%
+  mutate(bg_id=str_sub(bl_id, 1, 12))  %>%
   mutate(prop_in=in_area/bl_area)      %>%
-  select(bl_id, cd_id, prop_in)        %>%
-  full_join(red, by="bl_id")            -> b1
-glimpse(b1)
+  select(
+    bg_id,
+    bl_id, 
+    cd_id, 
+    prop_in)                           %>%
+  full_join(bl_list, 
+    by=c("bg_id", "bl_id"))            %>%
+  replace_na(list(prop_in=0))          %>%
+  full_join(red, 
+    by=c("bg_id", "bl_id"))            %>%
+  mutate(people_in=people*prop_in)     %>%
+  mutate(units_in=units*prop_in)        -> bl_counts
+glimpse(bl_counts)
 ```
 
-```{r calculate-weights}
-b1                                     %>%
-  replace_na(list(prop_in=0))          %>%
-  mutate(people_in=people*prop_in)     %>%
-  mutate(
-    housing_units_in=
-      housing_units*prop_in)            -> b2
-glimpse(b2)
-
-b2                                     %>%
+```{r calculate-bg-weights}
+bl_counts                              %>%
   group_by(bg_id, cd_id)               %>%
   summarize(
-    people_in=
-      round(sum(people_in)),
     people=sum(people),
-    housing_units_in=
-      round(sum(housing_units_in)),
-    housing_units=sum(housing_units))  %>%
+    people_in=round(sum(people_in)),
+    units=sum(units),
+    units_in=round(sum(units_in)))     %>%
   ungroup                              %>%
   group_by(bg_id)                      %>%
     mutate(
       people=sum(people),
-      housing_units=sum(housing_units)) -> b3
-glimpse(b3)
+      people_in=sum(people_in),
+      units=sum(units),
+      units_in=sum(units_in))           -> bg_counts
+glimpse(bg_counts)
 ```
 
 ### Save the information in an RData file.
 
 ```{r save}
 save(
-  b0, b1, b2, b3, 
+  bg_counts,
+  bg_list,
+  bl_counts,
+  bl_list,
+  cd_intersection,
   file="../Data/weights.RData")
 ```
