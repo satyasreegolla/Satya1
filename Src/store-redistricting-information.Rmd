@@ -30,7 +30,9 @@ An important contact at City Hall in Kansas City, Missouri is Steve Lebowski. He
 ```{r setup}
 library(sf)
 library(tidyverse)
-path_name <- "../data"
+path_name <- "../data/"
+load(paste0(path_name, "bl", ".RData"))
+load(paste0(path_name, "nbd", ".RData"))
 vnames <- c(
   "FILEID", 
   "STUSAB", 
@@ -138,7 +140,7 @@ Setting SUMLEV=="750" produces information for individual census blocks. Setting
 ```{r read-ks}
 file_name <- "red/ksgeo2020.pl"
 path_name                              %>%
-  paste(file_name, sep="/")            %>%
+  paste0(file_name)                    %>%
   read.delim(
     header=FALSE, 
     colClasses="character", 
@@ -215,5 +217,8 @@ red1                                   %>%
     people,
     units) -> red
 glimpse(red)
+```
+
+```{r save}
 save(red, file="../data/red.RData")
 ```

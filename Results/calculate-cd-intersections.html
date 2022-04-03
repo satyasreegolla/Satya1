@@ -210,117 +210,30 @@ pre code {
 <pre class="r"><code>path_name &lt;- &quot;../data/&quot;
 load(paste0(path_name, &quot;bg&quot;, &quot;.RData&quot;))
 load(paste0(path_name, &quot;bl&quot;, &quot;.RData&quot;))
-load(paste0(path_name, &quot;cd&quot;, &quot;.RData&quot;))
-load(paste0(path_name, &quot;red&quot;, &quot;.RData&quot;))</code></pre>
+load(paste0(path_name, &quot;cd&quot;, &quot;.RData&quot;))</code></pre>
+</div>
+<div id="intersect-blocks-and-community-districts" class="section level3">
+<h3>Intersect blocks and community districts</h3>
+<p>Identify the list of all blocks that partially or completely intersect with any community district.</p>
+<pre class="r"><code>bl                                     %&gt;%
+  st_intersection(cd)                  -&gt; bl_cd_intersection</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant throughout all
+## geometries</code></pre>
 </div>
 <div id="intersect-block-groups-and-community-districts" class="section level3">
 <h3>Intersect block groups and community districts</h3>
 <p>Identify the list of all block groups that partially or completely intersect with any community district.</p>
 <pre class="r"><code>bg                                     %&gt;%
-  st_intersection(cd)                  %&gt;%
-  select(-geometry)                    %&gt;%
-  pull(bg_id)                           -&gt; bg_list</code></pre>
+  st_intersection(cd)                   -&gt; bg_cd_intersection</code></pre>
 <pre><code>## Warning: attribute variables are assumed to be spatially constant throughout all
 ## geometries</code></pre>
-<pre class="r"><code>glimpse(bg_list)</code></pre>
-<pre><code>##  chr [1:1236] &quot;290950161001&quot; &quot;290950166002&quot; &quot;290950060001&quot; &quot;290950034004&quot; ...</code></pre>
-<p>Now get a list of all census blocks that lie inside any of these block groups.</p>
-<pre class="r"><code>bl                                     %&gt;%
-  pull(bl_id)                          %&gt;%
-  str_sub(1, 12)                       %&gt;%
-  bind_cols(bl$bl_id)                  %&gt;%
-  set_names(c(&quot;bg_id&quot;, &quot;bl_id&quot;))        -&gt; bl_list</code></pre>
-<pre><code>## New names:
-## * NA -&gt; ...1
-## * NA -&gt; ...2</code></pre>
-<pre class="r"><code>glimpse(bl_list)</code></pre>
-<pre><code>## Rows: 39,903
-## Columns: 2
-## $ bg_id &lt;chr&gt; &quot;200910518012&quot;, &quot;200910514003&quot;, &quot;200910515002&quot;, &quot;200919800031&quot;, ~
-## $ bl_id &lt;chr&gt; &quot;200910518012010&quot;, &quot;200910514003006&quot;, &quot;200910515002005&quot;, &quot;200919~</code></pre>
-</div>
-<div id="intersect-blocks-and-community-districts" class="section level3">
-<h3>Intersect blocks and community districts</h3>
-<pre class="r"><code>bl                                     %&gt;%
-  st_intersection(cd)                   -&gt; cd_intersection</code></pre>
-<pre><code>## Warning: attribute variables are assumed to be spatially constant throughout all
-## geometries</code></pre>
-<pre class="r"><code>glimpse(cd_intersection)</code></pre>
-<pre><code>## Rows: 15,748
-## Columns: 7
-## $ bl_id    &lt;chr&gt; &quot;290950023002014&quot;, &quot;290950063002017&quot;, &quot;290950022003001&quot;, &quot;290~
-## $ bl_name  &lt;chr&gt; &quot;Block 2014&quot;, &quot;Block 2017&quot;, &quot;Block 3001&quot;, &quot;Block 3004&quot;, &quot;Bloc~
-## $ bl_area  &lt;dbl&gt; 14983.197, 9597.627, 18151.722, 18380.541, 17691.230, 17458.2~
-## $ cd_id    &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 1~
-## $ cd_name  &lt;chr&gt; &quot;East Side&quot;, &quot;East Side&quot;, &quot;East Side&quot;, &quot;East Side&quot;, &quot;East Sid~
-## $ cd_area  &lt;dbl&gt; 281713850, 281713850, 281713850, 281713850, 281713850, 281713~
-## $ geometry &lt;GEOMETRY [°]&gt; POLYGON ((-94.5324 39.0887,..., POLYGON ((-94.56127 ~</code></pre>
-<pre class="r"><code>cd_intersection                        %&gt;%
-  st_area                              %&gt;%
-  as.numeric                           %&gt;%
-  tibble                               %&gt;%
-  set_names(&quot;in_area&quot;)                 %&gt;%
-  bind_cols(cd_intersection)           %&gt;%
-  mutate(bg_id=str_sub(bl_id, 1, 12))  %&gt;%
-  mutate(prop_in=in_area/bl_area)      %&gt;%
-  select(
-    bg_id,
-    bl_id, 
-    cd_id, 
-    prop_in)                           %&gt;%
-  full_join(bl_list, 
-    by=c(&quot;bg_id&quot;, &quot;bl_id&quot;))            %&gt;%
-  replace_na(list(prop_in=0))          %&gt;%
-  full_join(red, 
-    by=c(&quot;bg_id&quot;, &quot;bl_id&quot;))            %&gt;%
-  mutate(people_in=people*prop_in)     %&gt;%
-  mutate(units_in=units*prop_in)        -&gt; bl_counts
-glimpse(bl_counts)</code></pre>
-<pre><code>## Rows: 41,220
-## Columns: 8
-## $ bg_id     &lt;chr&gt; &quot;290950023002&quot;, &quot;290950063002&quot;, &quot;290950022003&quot;, &quot;29095002200~
-## $ bl_id     &lt;chr&gt; &quot;290950023002014&quot;, &quot;290950063002017&quot;, &quot;290950022003001&quot;, &quot;29~
-## $ cd_id     &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, ~
-## $ prop_in   &lt;dbl&gt; 1.000000000, 1.000000000, 1.000000000, 1.000000000, 1.000000~
-## $ people    &lt;dbl&gt; 62, 0, 22, 26, 42, 49, 43, 0, 12, 20, 5, 56, 58, 48, 47, 13,~
-## $ units     &lt;dbl&gt; 18, 0, 9, 18, 22, 22, 14, 0, 1, 10, 4, 12, 19, 24, 28, 4, 48~
-## $ people_in &lt;dbl&gt; 62.00000000, 0.00000000, 22.00000000, 26.00000000, 42.000000~
-## $ units_in  &lt;dbl&gt; 18.000000000, 0.000000000, 9.000000000, 18.000000000, 22.000~</code></pre>
-<pre class="r"><code>bl_counts                              %&gt;%
-  group_by(bg_id, cd_id)               %&gt;%
-  summarize(
-    people=sum(people),
-    people_in=round(sum(people_in)),
-    units=sum(units),
-    units_in=round(sum(units_in)))     %&gt;%
-  ungroup                              %&gt;%
-  group_by(bg_id)                      %&gt;%
-    mutate(
-      people=sum(people),
-      people_in=sum(people_in),
-      units=sum(units),
-      units_in=sum(units_in))           -&gt; bg_counts</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;bg_id&#39;. You can override using the `.groups` argument.</code></pre>
-<pre class="r"><code>glimpse(bg_counts)</code></pre>
-<pre><code>## Rows: 2,314
-## Columns: 6
-## Groups: bg_id [1,684]
-## $ bg_id     &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500002&quot;, &quot;20091050000~
-## $ cd_id     &lt;dbl&gt; 209, NA, 209, NA, 209, NA, NA, NA, NA, 209, 211, NA, 209, NA~
-## $ people    &lt;dbl&gt; 744, 744, 695, 695, 751, 751, 817, 680, 1378, 1313, 1313, 13~
-## $ people_in &lt;dbl&gt; 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, ~
-## $ units     &lt;dbl&gt; 341, 341, 311, 311, 377, 377, 371, 284, 612, 648, 648, 648, ~
-## $ units_in  &lt;dbl&gt; 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, ~</code></pre>
 </div>
 <div id="save-the-information-in-an-rdata-file." class="section level3">
 <h3>Save the information in an RData file.</h3>
 <pre class="r"><code>save(
-  bg_counts,
-  bg_list,
-  bl_counts,
-  bl_list,
-  cd_intersection,
-  file=&quot;../Data/weights.RData&quot;)</code></pre>
+  bl_cd_intersection,
+  bg_cd_intersection,
+  file=&quot;../Data/cd_intersections.RData&quot;)</code></pre>
 </div>
 
 

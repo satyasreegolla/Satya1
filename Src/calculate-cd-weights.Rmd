@@ -1,3 +1,4 @@
+
 ---
 title: "Calculate intersection of blocks and community districts"
 author: "Satya Golla and Steve Simon"
@@ -13,6 +14,7 @@ This program will calculate which census blocks intersect with which community d
 + bg.RData
 + bl.RData
 + cd.RData
++ cd-intersections.RData
 + red.RData
 
 ### General information
@@ -30,30 +32,63 @@ Johnson County, KS (20091)
 Leavenworth County, KS (20103)
 Wyandotte County, KS (20209)
 
-### Load relevant files
+### Setup
 
 ```{r setup}
 library(sf)
 library(tidyverse)
 library(magrittr)
 path_name <- "../data/"
-load(paste0(path_name, "bg", ".RData"))
-load(paste0(path_name, "bl", ".RData"))
-load(paste0(path_name, "cd", ".RData"))
-load(paste0(path_name, "red", ".RData"))
 ```
 
-### Intersect block groups and community districts
+### Load key files
+
+Block groups
+
+```{r load-bg}
+load(paste0(path_name, "bg", ".RData"))
+glimpse(bg)
+```
+
+Blocks
+
+```{r load-bl}
+load(paste0(path_name, "bl", ".RData"))
+glimpse(bl)
+```
+
+Community districts
+
+```{r load-cd}
+load(paste0(path_name, "cd", ".RData"))
+glimpse(cd)
+```
+
+Community district intersections
+
+```{r load-cd-intersections}
+load(paste0(path_name, "cd-intersections", ".RData"))
+glimpse(bg_cd_intersection)
+glimpse(bl_cd_intersection)
+```
+
+```{r load-redistricting}
+load(paste0(path_name, "red", ".RData"))
+glimpse(red)
+```
+
+### Get block group list
 
 Identify the list of all block groups that partially or completely intersect with any community district.
 
 ```{r intersect-bg}
-bg                                     %>%
-  st_intersection(cd)                  %>%
-  select(-geometry)                    %>%
-  pull(bg_id)                           -> bg_list
+bg_cd_intersection                     %>%
+  pull(bg_id)                          %>%
+  unique                                -> bg_list
 glimpse(bg_list)
 ```
+
+### Get block list
 
 Now get a list of all census blocks that lie inside any of these block groups.
 
@@ -62,26 +97,20 @@ bl                                     %>%
   pull(bl_id)                          %>%
   str_sub(1, 12)                       %>%
   bind_cols(bl$bl_id)                  %>%
-  set_names(c("bg_id", "bl_id"))        -> bl_list
+  set_names(c("bg_id", "bl_id"))       %>%
+  filter(bg_id %in% bg_list)            -> bl_list
 glimpse(bl_list)
 ```
 
-### Intersect blocks and community districts
-
-
-```{r intersect-bl}
-bl                                     %>%
-  st_intersection(cd)                   -> cd_intersection
-glimpse(cd_intersection)
-```
+### Calculate counts and areas of intersections
 
 ```{r calculate-proportions}
-cd_intersection                        %>%
+bl_cd_intersection                     %>%
   st_area                              %>%
   as.numeric                           %>%
   tibble                               %>%
   set_names("in_area")                 %>%
-  bind_cols(cd_intersection)           %>%
+  bind_cols(bl_cd_intersection)        %>%
   mutate(bg_id=str_sub(bl_id, 1, 12))  %>%
   mutate(prop_in=in_area/bl_area)      %>%
   select(
@@ -94,26 +123,40 @@ cd_intersection                        %>%
   replace_na(list(prop_in=0))          %>%
   full_join(red, 
     by=c("bg_id", "bl_id"))            %>%
-  mutate(people_in=people*prop_in)     %>%
-  mutate(units_in=units*prop_in)        -> bl_counts
+  mutate(
+    people_in=round(people*prop_in))   %>%
+  mutate(
+    units_in=round(units*prop_in))     %>%
+  select(
+    bg_id,
+    bl_id,
+    cd_id,
+    prop_in,
+    people_in,
+    units_in)                           -> bl_counts
+
 glimpse(bl_counts)
 ```
 
-```{r calculate-bg-weights}
+### Calculate counts for block groups
+
+```{r count-bl}
+red                                    %>%
+  filter(bg_id %in% bg_list)           %>%
+  group_by(bg_id)                      %>%
+  summarize(
+    people=sum(people),
+    units=sum(units))                   -> count_total
+
 bl_counts                              %>%
   group_by(bg_id, cd_id)               %>%
   summarize(
-    people=sum(people),
-    people_in=round(sum(people_in)),
-    units=sum(units),
-    units_in=round(sum(units_in)))     %>%
-  ungroup                              %>%
-  group_by(bg_id)                      %>%
-    mutate(
-      people=sum(people),
-      people_in=sum(people_in),
-      units=sum(units),
-      units_in=sum(units_in))           -> bg_counts
+    people_in=sum(people_in),
+    units_in=sum(units_in))             -> count_in
+
+count_in                               %>%
+  inner_join(count_total, by="bg_id")  %>%
+  filter(!is.na(cd_id))                 -> bg_counts
 glimpse(bg_counts)
 ```
 
@@ -125,6 +168,5 @@ save(
   bg_list,
   bl_counts,
   bl_list,
-  cd_intersection,
-  file="../Data/weights.RData")
+  file="../Data/cd-weights.RData")
 ```
