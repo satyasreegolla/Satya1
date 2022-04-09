@@ -176,7 +176,6 @@ pre code {
 <li>bg.RData</li>
 <li>bl.RData</li>
 <li>cd.RData</li>
-<li>red.RData</li>
 </ul>
 <div id="general-information" class="section level3">
 <h3>General information</h3>
@@ -214,11 +213,28 @@ load(paste0(path_name, &quot;cd&quot;, &quot;.RData&quot;))</code></pre>
 </div>
 <div id="intersect-blocks-and-community-districts" class="section level3">
 <h3>Intersect blocks and community districts</h3>
-<p>Identify the list of all blocks that partially or completely intersect with any community district.</p>
+<p>Identify the list of all blocks that partially or completely intersect with any community district. Calculate the block area and add it back to the data frame.</p>
 <pre class="r"><code>bl                                     %&gt;%
   st_intersection(cd)                  -&gt; bl_cd_intersection</code></pre>
 <pre><code>## Warning: attribute variables are assumed to be spatially constant throughout all
 ## geometries</code></pre>
+<pre class="r"><code>bl_cd_intersection                     %&gt;%
+  st_area                              %&gt;%
+  as.numeric                           %&gt;%
+  tibble                               %&gt;%
+  set_names(&quot;in_area&quot;)                 %&gt;%
+  bind_cols(bl_cd_intersection)        %&gt;%
+  mutate(
+    bg_id=str_sub(bl_id, 1, 12))       %&gt;%
+  mutate(
+    bl_prop_in=in_area/bl_area)        %&gt;%
+  mutate(
+    bl_prop_in=round(bl_prop_in, 3))   %&gt;%
+  select(
+    bg_id,
+    bl_id, 
+    cd_id, 
+    bl_prop_in)                         -&gt; bl_cd_intersection</code></pre>
 </div>
 <div id="intersect-block-groups-and-community-districts" class="section level3">
 <h3>Intersect block groups and community districts</h3>
@@ -227,6 +243,17 @@ load(paste0(path_name, &quot;cd&quot;, &quot;.RData&quot;))</code></pre>
   st_intersection(cd)                   -&gt; bg_cd_intersection</code></pre>
 <pre><code>## Warning: attribute variables are assumed to be spatially constant throughout all
 ## geometries</code></pre>
+<pre class="r"><code>bg_cd_intersection                     %&gt;%
+  st_area                              %&gt;%
+  as.numeric                           %&gt;%
+  tibble                               %&gt;%
+  set_names(&quot;in_area&quot;)                 %&gt;%
+  bind_cols(bg_cd_intersection)        %&gt;%
+  mutate(bg_prop_in=in_area/bg_area)   %&gt;%
+  select(
+    bg_id,
+    cd_id, 
+    bg_prop_in)                         -&gt; bg_cd_intersection</code></pre>
 </div>
 <div id="save-the-information-in-an-rdata-file." class="section level3">
 <h3>Save the information in an RData file.</h3>

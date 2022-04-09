@@ -13,7 +13,6 @@ This program will calculate which census blocks intersect with which community d
 + bg.RData
 + bl.RData
 + cd.RData
-+ red.RData
 
 ### General information
 
@@ -44,12 +43,31 @@ load(paste0(path_name, "cd", ".RData"))
 
 ### Intersect blocks and community districts
 
-Identify the list of all blocks that partially or completely intersect with any community district.
+Identify the list of all blocks that partially or completely intersect with any community district. Calculate the block area and add it back to the data frame.
 
 ```{r intersect-bl}
 bl                                     %>%
   st_intersection(cd)                  -> bl_cd_intersection
+
+bl_cd_intersection                     %>%
+  st_area                              %>%
+  as.numeric                           %>%
+  tibble                               %>%
+  set_names("in_area")                 %>%
+  bind_cols(bl_cd_intersection)        %>%
+  mutate(
+    bg_id=str_sub(bl_id, 1, 12))       %>%
+  mutate(
+    bl_prop_in=in_area/bl_area)        %>%
+  mutate(
+    bl_prop_in=round(bl_prop_in, 3))   %>%
+  select(
+    bg_id,
+    bl_id, 
+    cd_id, 
+    bl_prop_in)                         -> bl_cd_intersection
 ```
+
 
 ### Intersect block groups and community districts
 
@@ -58,6 +76,18 @@ Identify the list of all block groups that partially or completely intersect wit
 ```{r intersect-bg}
 bg                                     %>%
   st_intersection(cd)                   -> bg_cd_intersection
+
+bg_cd_intersection                     %>%
+  st_area                              %>%
+  as.numeric                           %>%
+  tibble                               %>%
+  set_names("in_area")                 %>%
+  bind_cols(bg_cd_intersection)        %>%
+  mutate(bg_prop_in=in_area/bg_area)   %>%
+  select(
+    bg_id,
+    cd_id, 
+    bg_prop_in)                         -> bg_cd_intersection
 ```
 
 ### Save the information in an RData file.

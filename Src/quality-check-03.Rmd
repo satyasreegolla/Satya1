@@ -100,10 +100,14 @@ extract_bl <- function(bl_list, j) {
     pull(bl_id)                       
 }
 
-bg_plot <- function(cd, i, bg, j) {
+bg_plot <- function(cd, i, bg, bg_counts, j) {
   ti <- j
   cd_i <- filter(cd, cd_id==i)
   bg_j <- filter(bg, bg_id==j)
+  bg_counts                            %>%
+    filter(cd_id==i)                   %>%
+    filter(bg_id==j)                   %>%
+    print
   ggplot(cd_i, aes())                   +
     geom_sf(
       fill="lightgreen",
@@ -117,12 +121,29 @@ bg_plot <- function(cd, i, bg, j) {
   plot(plot_bg)
 }
 
-display_blocks <- function(bl_counts, j) {
+display_blocks <- function(bl_counts, i, j) {
+  bl                                   %>%
+    mutate(
+      bg_id=str_sub(bl_id, 1, 12))     %>%
+    filter(bg_id==j)                   %>%
+    pull(bl_id)                         -> bl_list_j
+  bl_list_j                            %>%
+    length                             %>%
+    paste0(" blocks in bg")            %>%
+    print
   bl_counts                            %>%
+    filter(cd_id==i)                   %>%
+    pull(bl_id)                         -> cd_list_i
+  setdiff(bl_list_j, cd_list_i)        %>%
+    length                             %>%
+    paste0(" blocks outside cd")       %>%
+    print
+  bl_counts                            %>%
+    filter(cd_id==i)                   %>%
     filter(bg_id==j)                   %>%
     select(
       bl_id,
-      prop_in,
+      bl_prop_in,
       people_in,
       units_in)                        %>%
     data.frame                         %>%
@@ -140,11 +161,12 @@ display_blocks <- function(bl_counts, j) {
 
 ```{r loop}
 for (i in cd_list[7]) {
+  i <- 209
   county_plot(co, cd, i)
   bg_list <- extract_bg(bl_counts, i)
   for (j in bg_list) {
-    display_blocks(bl_counts, j)
-    bg_plot(cd, i, bg, j)
+    display_blocks(bl_counts, i, j)
+    bg_plot(cd, i, bg, bg_counts, j)
   }
 }
 ```

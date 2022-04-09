@@ -186,6 +186,13 @@ pre code {
 <p>The important counties for this program are</p>
 <p>Cass County, MO (29037) Clay County, MO (29047) Jackson County, MO (29095) Johnson County, KS (20091) Leavenworth County, KS (20103) Wyandotte County, KS (20209)</p>
 </div>
+<div id="counts" class="section level3">
+<h3>Counts</h3>
+<p>There are 7 counties in the Kansas City metropolitan area.</p>
+<p>There are 59 community districts in the 7 counties.</p>
+<p>There are 1,684 block groups in the 7 counties. 776 of these intersect partially or completely with one or more community districts. 465 intersect with only one community district, 213 with two, 65 with 3, 21 with 4, 7 with 5, 4 with 6, and 1 with 7. Note that <code>465*1 + 213*2 +65*3 + 21*4 + 7*5 + 4*6 + 1*7 = 1,236</code>.</p>
+<p>There are 39,903 blocks in the 7 counties. 17,547 of these intersect partially or completely with one or more community districts. 16339 intersect with only one community district, 1,108 intersect with two, 1,108 intersect with three, and 9 intersect with four. Note that <code>16339*1 + 1108*2 + 91*3 + 9*4 = 18864</code>.</p>
+</div>
 <div id="setup" class="section level3">
 <h3>Setup</h3>
 <pre class="r"><code>library(sf)</code></pre>
@@ -243,24 +250,17 @@ glimpse(cd)</code></pre>
 <pre class="r"><code>load(paste0(path_name, &quot;cd-intersections&quot;, &quot;.RData&quot;))
 glimpse(bg_cd_intersection)</code></pre>
 <pre><code>## Rows: 1,236
-## Columns: 7
-## $ bg_id    &lt;chr&gt; &quot;290950161001&quot;, &quot;290950166002&quot;, &quot;290950060001&quot;, &quot;290950034004~
-## $ bg_name  &lt;chr&gt; &quot;Block Group 1&quot;, &quot;Block Group 2&quot;, &quot;Block Group 1&quot;, &quot;Block Gro~
-## $ bg_area  &lt;dbl&gt; 1182302.6, 609967.1, 1107155.1, 362745.1, 1311466.8, 640624.1~
-## $ cd_id    &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 1~
-## $ cd_name  &lt;chr&gt; &quot;East Side&quot;, &quot;East Side&quot;, &quot;East Side&quot;, &quot;East Side&quot;, &quot;East Sid~
-## $ cd_area  &lt;dbl&gt; 281713850, 281713850, 281713850, 281713850, 281713850, 281713~
-## $ geometry &lt;GEOMETRY [°]&gt; POLYGON ((-94.57052 39.0859..., POLYGON ((-94.56256 ~</code></pre>
+## Columns: 3
+## $ bg_id      &lt;chr&gt; &quot;290950161001&quot;, &quot;290950166002&quot;, &quot;290950060001&quot;, &quot;2909500340~
+## $ cd_id      &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106,~
+## $ bg_prop_in &lt;dbl&gt; 0.8919314491, 1.0000000000, 1.0000000000, 1.0000000000, 0.3~</code></pre>
 <pre class="r"><code>glimpse(bl_cd_intersection)</code></pre>
 <pre><code>## Rows: 15,748
-## Columns: 7
-## $ bl_id    &lt;chr&gt; &quot;290950023002014&quot;, &quot;290950063002017&quot;, &quot;290950022003001&quot;, &quot;290~
-## $ bl_name  &lt;chr&gt; &quot;Block 2014&quot;, &quot;Block 2017&quot;, &quot;Block 3001&quot;, &quot;Block 3004&quot;, &quot;Bloc~
-## $ bl_area  &lt;dbl&gt; 14983.197, 9597.627, 18151.722, 18380.541, 17691.230, 17458.2~
-## $ cd_id    &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 1~
-## $ cd_name  &lt;chr&gt; &quot;East Side&quot;, &quot;East Side&quot;, &quot;East Side&quot;, &quot;East Side&quot;, &quot;East Sid~
-## $ cd_area  &lt;dbl&gt; 281713850, 281713850, 281713850, 281713850, 281713850, 281713~
-## $ geometry &lt;GEOMETRY [°]&gt; POLYGON ((-94.5324 39.0887,..., POLYGON ((-94.56127 ~</code></pre>
+## Columns: 4
+## $ bg_id      &lt;chr&gt; &quot;290950023002&quot;, &quot;290950063002&quot;, &quot;290950022003&quot;, &quot;2909500220~
+## $ bl_id      &lt;chr&gt; &quot;290950023002014&quot;, &quot;290950063002017&quot;, &quot;290950022003001&quot;, &quot;2~
+## $ cd_id      &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106,~
+## $ bl_prop_in &lt;dbl&gt; 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 0.997, 0.001, 0.0~</code></pre>
 <pre class="r"><code>load(paste0(path_name, &quot;red&quot;, &quot;.RData&quot;))
 glimpse(red)</code></pre>
 <pre><code>## Rows: 39,903
@@ -281,90 +281,100 @@ glimpse(bg_list)</code></pre>
 </div>
 <div id="get-block-list" class="section level3">
 <h3>Get block list</h3>
-<p>Now get a list of all census blocks that lie inside any of these block groups.</p>
+<p>Now get a list of all census blocks that lie inside any of these block groups. Merge with red to get population and housing unit counts.</p>
 <pre class="r"><code>bl                                     %&gt;%
   pull(bl_id)                          %&gt;%
   str_sub(1, 12)                       %&gt;%
   bind_cols(bl$bl_id)                  %&gt;%
   set_names(c(&quot;bg_id&quot;, &quot;bl_id&quot;))       %&gt;%
-  filter(bg_id %in% bg_list)            -&gt; bl_list</code></pre>
+  filter(bg_id %in% bg_list)           %&gt;%
+  inner_join(red, 
+    by=c(&quot;bg_id&quot;, &quot;bl_id&quot;))               -&gt; bl_list</code></pre>
 <pre><code>## New names:
 ## * `` -&gt; ...1
 ## * `` -&gt; ...2</code></pre>
 <pre class="r"><code>glimpse(bl_list)</code></pre>
 <pre><code>## Rows: 17,547
-## Columns: 2
-## $ bg_id &lt;chr&gt; &quot;200910533013&quot;, &quot;200910533024&quot;, &quot;200910533024&quot;, &quot;200910534291&quot;, ~
-## $ bl_id &lt;chr&gt; &quot;200910533013008&quot;, &quot;200910533024013&quot;, &quot;200910533024008&quot;, &quot;200910~</code></pre>
+## Columns: 4
+## $ bg_id  &lt;chr&gt; &quot;200910533013&quot;, &quot;200910533024&quot;, &quot;200910533024&quot;, &quot;200910534291&quot;,~
+## $ bl_id  &lt;chr&gt; &quot;200910533013008&quot;, &quot;200910533024013&quot;, &quot;200910533024008&quot;, &quot;20091~
+## $ people &lt;dbl&gt; 54, 254, 125, 39, 32, 86, 37, 58, 35, 51, 47, 45, 52, 78, 182, ~
+## $ units  &lt;dbl&gt; 27, 82, 36, 17, 9, 27, 11, 26, 15, 27, 29, 20, 33, 41, 94, 14, ~</code></pre>
 </div>
 <div id="calculate-counts-and-areas-of-intersections" class="section level3">
 <h3>Calculate counts and areas of intersections</h3>
 <pre class="r"><code>bl_cd_intersection                     %&gt;%
-  st_area                              %&gt;%
-  as.numeric                           %&gt;%
-  tibble                               %&gt;%
-  set_names(&quot;in_area&quot;)                 %&gt;%
-  bind_cols(bl_cd_intersection)        %&gt;%
-  mutate(bg_id=str_sub(bl_id, 1, 12))  %&gt;%
-  mutate(prop_in=in_area/bl_area)      %&gt;%
-  select(
-    bg_id,
-    bl_id, 
-    cd_id, 
-    prop_in)                           %&gt;%
   full_join(bl_list, 
     by=c(&quot;bg_id&quot;, &quot;bl_id&quot;))            %&gt;%
-  replace_na(list(prop_in=0))          %&gt;%
-  full_join(red, 
-    by=c(&quot;bg_id&quot;, &quot;bl_id&quot;))            %&gt;%
+  replace_na(list(bl_prop_in=0))       %&gt;%
+  replace_na(list(cd_id=0))            %&gt;%
   mutate(
-    people_in=round(people*prop_in))   %&gt;%
+    people_in=
+      round(people*bl_prop_in))        %&gt;%
   mutate(
-    units_in=round(units*prop_in))     %&gt;%
+    units_in=
+      round(units*bl_prop_in))         %&gt;%
   select(
     bg_id,
     bl_id,
     cd_id,
-    prop_in,
+    bl_prop_in,
+    people,
     people_in,
+    units,
     units_in)                           -&gt; bl_counts
 
 glimpse(bl_counts)</code></pre>
-<pre><code>## Rows: 41,220
-## Columns: 6
-## $ bg_id     &lt;chr&gt; &quot;290950023002&quot;, &quot;290950063002&quot;, &quot;290950022003&quot;, &quot;29095002200~
-## $ bl_id     &lt;chr&gt; &quot;290950023002014&quot;, &quot;290950063002017&quot;, &quot;290950022003001&quot;, &quot;29~
-## $ cd_id     &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, ~
-## $ prop_in   &lt;dbl&gt; 1.000000000, 1.000000000, 1.000000000, 1.000000000, 1.000000~
-## $ people_in &lt;dbl&gt; 62, 0, 22, 26, 42, 49, 43, 0, 0, 20, 5, 56, 58, 48, 47, 13, ~
-## $ units_in  &lt;dbl&gt; 18, 0, 9, 18, 22, 22, 14, 0, 0, 10, 4, 12, 19, 24, 28, 4, 48~</code></pre>
+<pre><code>## Rows: 18,864
+## Columns: 8
+## $ bg_id      &lt;chr&gt; &quot;290950023002&quot;, &quot;290950063002&quot;, &quot;290950022003&quot;, &quot;2909500220~
+## $ bl_id      &lt;chr&gt; &quot;290950023002014&quot;, &quot;290950063002017&quot;, &quot;290950022003001&quot;, &quot;2~
+## $ cd_id      &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106,~
+## $ bl_prop_in &lt;dbl&gt; 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 0.997, 0.001, 0.0~
+## $ people     &lt;dbl&gt; 62, 0, 22, 26, 42, 49, 43, 0, 12, 20, 5, 56, 58, 48, 47, 13~
+## $ people_in  &lt;dbl&gt; 62, 0, 22, 26, 42, 49, 43, 0, 0, 20, 5, 56, 58, 48, 47, 13,~
+## $ units      &lt;dbl&gt; 18, 0, 9, 18, 22, 22, 14, 0, 1, 10, 4, 12, 19, 24, 28, 4, 4~
+## $ units_in   &lt;dbl&gt; 18, 0, 9, 18, 22, 22, 14, 0, 0, 10, 4, 12, 19, 24, 28, 4, 4~</code></pre>
 </div>
 <div id="calculate-counts-for-block-groups" class="section level3">
 <h3>Calculate counts for block groups</h3>
 <pre class="r"><code>red                                    %&gt;%
-  filter(bg_id %in% bg_list)           %&gt;%
   group_by(bg_id)                      %&gt;%
   summarize(
     people=sum(people),
     units=sum(units))                   -&gt; count_total
-
-bl_counts                              %&gt;%
+glimpse(count_total)</code></pre>
+<pre><code>## Rows: 1,684
+## Columns: 3
+## $ bg_id  &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500002&quot;, &quot;200910500003&quot;, &quot;200910500004&quot;,~
+## $ people &lt;dbl&gt; 744, 695, 751, 817, 680, 1378, 1313, 1196, 1196, 684, 919, 1004~
+## $ units  &lt;dbl&gt; 341, 311, 377, 371, 284, 612, 648, 549, 625, 332, 468, 529, 548~</code></pre>
+<pre class="r"><code>bl_counts                              %&gt;%
   group_by(bg_id, cd_id)               %&gt;%
   summarize(
     people_in=sum(people_in),
-    units_in=sum(units_in))             -&gt; count_in</code></pre>
+    units_in=sum(units_in))            %&gt;%
+  filter(cd_id &gt; 0)                     -&gt; count_in</code></pre>
 <pre><code>## `summarise()` has grouped output by &#39;bg_id&#39;. You can override using the
 ## `.groups` argument.</code></pre>
+<pre class="r"><code>glimpse(count_in)</code></pre>
+<pre><code>## Rows: 1,236
+## Columns: 4
+## Groups: bg_id [776]
+## $ bg_id     &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500002&quot;, &quot;200910500003&quot;, &quot;20091050100~
+## $ cd_id     &lt;dbl&gt; 209, 209, 209, 209, 211, 209, 211, 211, 112, 112, 112, 111, ~
+## $ people_in &lt;dbl&gt; 1, 2, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, ~
+## $ units_in  &lt;dbl&gt; 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~</code></pre>
 <pre class="r"><code>count_in                               %&gt;%
   inner_join(count_total, by=&quot;bg_id&quot;)  %&gt;%
-  filter(!is.na(cd_id))                 -&gt; bg_counts
+  filter(cd_id &gt; 0)                     -&gt; bg_counts
 glimpse(bg_counts)</code></pre>
 <pre><code>## Rows: 1,236
 ## Columns: 6
 ## Groups: bg_id [776]
 ## $ bg_id     &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500002&quot;, &quot;200910500003&quot;, &quot;20091050100~
 ## $ cd_id     &lt;dbl&gt; 209, 209, 209, 209, 211, 209, 211, 211, 112, 112, 112, 111, ~
-## $ people_in &lt;dbl&gt; 1, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, ~
+## $ people_in &lt;dbl&gt; 1, 2, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, ~
 ## $ units_in  &lt;dbl&gt; 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~
 ## $ people    &lt;dbl&gt; 744, 695, 751, 1313, 1313, 1196, 643, 630, 778, 961, 1210, 9~
 ## $ units     &lt;dbl&gt; 341, 311, 377, 648, 648, 549, 315, 444, 287, 335, 461, 430, ~</code></pre>
