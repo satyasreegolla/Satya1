@@ -28,6 +28,7 @@ format:
 
 source:
   U.S. Census Bureau
+  https://www.census.gov/
 
 vars:
   STATEFP20:
@@ -54,11 +55,12 @@ vars:
     label: Census block
     scale: Alphanumeric block name
     
-  MTFCC20:
-    label: Unknown
+  MTFCC20: 
+    label: MAF/TIGER feature class code (G2200)
+    scale: five digit 
     
   UR20:
-    label: Unknown
+    label: 2020 Census urban/rural indicator
   
   UACE20:
     label: Unknown
