@@ -8,4 +8,3 @@ knit: (function(inputFile, encoding) {
   output_dir = "../results", output_format = "all") })  
 ---
 
-This program will read in census puma files and store them in an RData file for later use.
