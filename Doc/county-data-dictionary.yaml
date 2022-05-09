@@ -21,9 +21,9 @@ format:
 
   missing-value-code: not needed
 
-  rows: 17
+  rows: 
 
-  columns: <<positive integer>>
+  columns: 17
 
 source:
   U.S. Census Bureau
@@ -88,4 +88,5 @@ vars:
     
   INTPTLON:
     label: Longitude of an interior point
+  chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www2.census.gov/geo/pdfs/maps-data/data/tiger/tgrshp2019/TGRSHP2019_TechDoc.pdf
 ---

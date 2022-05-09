@@ -39,12 +39,15 @@ vars:
     
   id:
     label: Unknown
+    unique id field, inde variable gi
   
   label_long:
     label: Unknown
-  
+  long name of nbd
   shid:
     label: Unknown
+    id for Shapefile
+    
   
   Shape_Leng:
     label: Perimeter of neighborhood
