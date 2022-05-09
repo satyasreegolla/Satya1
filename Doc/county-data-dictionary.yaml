@@ -21,7 +21,7 @@ format:
 
   missing-value-code: not needed
 
-  rows: <<positive integer>>
+  rows: 17
 
   columns: <<positive integer>>
 
@@ -38,31 +38,42 @@ vars:
     scale: three digit integer with leading zeros
   
   COUNTYNS:
-    label: Unknown
+    label: Current county GNIS code 
+    scale: 
     
   GEOID: 
-    label: Geographic ID
+    label: (Geographic ID) County identifier; a concatenation of Current state
+            FIPS code and county FIPS code 
     
   NAME:
-    label: County name
+    label: Current county name 
     
   NAMELSAD: 
-    label: Longer county name
+    label: (Longer county name)Current name and the translated legal/statistical 
+            area description for county
+    
+  LSAD: 
+    label: Current legal/statistical area description code for consolidated city 
+    
+  CLASSFP: 
+    label: Current FIPS class code 
+  
     
   MTFCC:
-    label: Unknown
+    label: MAF/TIGER feature class code (G4020) 
     
   CSAFP:
-    label: Unknown
+    label: Current combined statistical area code
     
   CBSAFP:
-    label: Unknown
+    label: Current metropolitan statistical area/micropolitan statistical 
+            area code 
     
   METDIVFP:
-    label: Unknown
+    label: Current metropolitan division code 
     
   FUNCSTAT:
-    label: Unknown
+    label: Current functional status 
     
   ALAND:
     label: Land area
