@@ -54,7 +54,7 @@ vars:
     unit: Unknown
   
   Shape_Le_1:
-    label: Perimeter of neighborhood (duplicate?)
+    label: Perimeter of neighborhood (duplicate)
     unit: Unknown
     
   Shape_Area:
