@@ -40,8 +40,7 @@ There are 59 community districts in the 7 counties.
 
 There are 1,684 block groups in the 7 counties. 776 of these intersect partially or completely with one or more community districts. 465 intersect with only one community district, 213 with two, 65 with 3, 21 with 4, 7 with 5, 4 with 6, and 1 with 7. Note that `465*1 + 213*2 +65*3 + 21*4 + 7*5 + 4*6 + 1*7 = 1,236`.
 
-There are 39,903 blocks in the 7 counties. 17,547 of these intersect partially or completely with one or more community districts. 16339 intersect with only one community district, 1,108 intersect with two, 1,108 intersect with three, and 9 intersect with four. Note that `16339*1 + 1108*2 + 91*3 + 9*4 = 18864`.
-
+There are 39,903 blocks in the 7 counties. 17,547 of these intersect partially or completely with one or more community districts. 16339 intersect with only one community district, 1,108 intersect with two, 91 intersect with three, and 9 intersect with four. Note that `16339*1 + 1108*2 + 91*3 + 9*4 = 18864`.
 
 ### Setup
 
