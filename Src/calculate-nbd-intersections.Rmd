@@ -50,7 +50,9 @@ Identify the list of all blocks that partially or completely intersect with any 
 ```{r intersect-bl}
 bl                                     %>%
   st_intersection(nbd)                  -> bl_nbd_intersection
+```
 
+```{r intersect-bl-part2}
 bl_nbd_intersection                    %>%
   st_area                              %>%
   as.numeric                           %>%
@@ -78,7 +80,9 @@ Identify the list of all block groups that partially or completely intersect wit
 ```{r intersect-bg}
 bg                                     %>%
   st_intersection(nbd)                 -> bg_nbd_intersection
+```
 
+```{r intersect-bg-part2}
 bg_nbd_intersection                    %>%
   st_area                              %>%
   as.numeric                           %>%
@@ -86,6 +90,8 @@ bg_nbd_intersection                    %>%
   set_names("in_area")                 %>%
   bind_cols(bg_nbd_intersection)       %>%
   mutate(bg_prop_in=in_area/bg_area)   %>%
+  mutate(
+    bg_prop_in=round(bg_prop_in, 3))   %>%
   select(
     bg_id,
     nbd_id, 
