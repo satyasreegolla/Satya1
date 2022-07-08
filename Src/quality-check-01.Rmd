@@ -41,6 +41,13 @@ glimpse(red)
 
 ### Calculate mismatches
 
+Do a full join of bl and red. Mismatches are coded as 
+  m_code=0 perfect match
+  m_code=1 not found in red
+  m_code=2 not found in bl
+  
+  
+
 ```{r mismatch}
 bl                                    %>%
   full_join(red, by=c("bl_id"))       %>%
@@ -50,19 +57,9 @@ bl                                    %>%
   mutate(
     m_bl=as.numeric(is.na(bl_name)))  %>%
   mutate(m_code=m_red+2*m_bl)          -> m
-table(m$m_code, m$st_id)
-table(m$m_code, m$co_id)
 m                                     %>%
-  ggplot(aes()) +
-    geom_sf()
-m                                     %>%
-  filter(m_red==1)                    %>%
-  ggplot(aes()) +
-    geom_sf()
-m                                     %>%
-  filter(m_red==0)                    %>%
-  ggplot(aes()) +
-    geom_sf()
+  filter(m_code > 0)                  %>%
+  print
 ```
 
 <!---Key census links go here--->
