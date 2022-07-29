@@ -69,11 +69,12 @@ cd                                     %>%
 ```{r functions}
 county_plot <- function(co, cd, i) {
   cd %<>% filter(cd_id==i)
+  ti <- paste0(cd$cd_name, " (", i, ")")
   ggplot(co, aes())                     +
     geom_sf(
       fill=NA,
       color="darkred")                  +
-    ggtitle(cd$cd_name)                 +
+    ggtitle(ti)                         +
     geom_sf(
       data=cd,
       aes(),
@@ -100,14 +101,12 @@ extract_bl <- function(bl_list, j) {
     pull(bl_id)                       
 }
 
-bg_plot <- function(cd, i, bg, bg_counts, j) {
-  ti <- j
+bg_plot <- function(cd, i, bg, j) {
   cd_i <- filter(cd, cd_id==i)
+  cd_i                                   %>%
+    pull(cd_name)                         -> i_label
+  ti <- paste0(i_label, " and block group ", j)
   bg_j <- filter(bg, bg_id==j)
-  bg_counts                            %>%
-    filter(cd_id==i)                   %>%
-    filter(bg_id==j)                   %>%
-    print
   ggplot(cd_i, aes())                   +
     geom_sf(
       fill="lightgreen",
@@ -121,7 +120,42 @@ bg_plot <- function(cd, i, bg, bg_counts, j) {
   plot(plot_bg)
 }
 
-display_blocks <- function(bl_counts, i, j) {
+bl_plot <- function(cd, i, bg, j, bl) {
+  cd_i <- filter(cd, cd_id==i)
+  bg_j <- filter(bg, bg_id==j)
+  int_ij <- st_intersection(cd_i, bg_j)
+  bl                                   %>%
+    mutate(
+      bg_id=str_sub(bl_id, 1, 12))     %>%
+    filter(bg_id==j)                    -> bl_j
+  ti <- paste0(
+    "Closeup of block group ", j)
+  ggplot(bg_j, aes())                   +
+    geom_sf(
+      fill=NA,
+      color="darkred")                  +
+    geom_sf(
+      data=int_ij,
+      aes(),
+      fill="lightgreen",
+      color="darkgreen")                +
+    geom_sf(
+      data=bl_j,
+      aes(),
+      fill=NA,
+      color="darkred")                  +
+    ggtitle(ti)                         -> plot_bl
+  plot(plot_bl)
+}
+
+display_bg_counts <- function(bg_counts, i, j) {
+  bg_counts                            %>%
+    filter(cd_id==i)                   %>%
+    filter(bg_id==j)                   %>%
+    print
+}
+
+display_bl_counts <- function(bl_counts, i, j) {
   bl                                   %>%
     mutate(
       bg_id=str_sub(bl_id, 1, 12))     %>%
@@ -145,28 +179,28 @@ display_blocks <- function(bl_counts, i, j) {
       bl_id,
       bl_prop_in,
       people_in,
-      units_in)                        %>%
+      people,
+      units_in,
+      units)                           %>%
     data.frame                         %>%
     print
 }
 ```
 
-  ti <- paste0(
-    s3$bg_id, ", ",
-    s3$people_in, "/", 
-    s3$people, ", ",
-    s3$housing_units_in, "/", 
-    s3$housing_units)
-
-
 ```{r loop}
-for (i in cd_list[7]) {
-  i <- 209
+for (i in cd_list) {
   county_plot(co, cd, i)
   bg_list <- extract_bg(bl_counts, i)
   for (j in bg_list) {
-    display_blocks(bl_counts, i, j)
-    bg_plot(cd, i, bg, bg_counts, j)
+    bg_cd_intersection                   %>%
+      filter(cd_id==i)                   %>%
+      filter(bg_id==j)                   %>%
+      pull(bg_prop_in)                    -> ij_prop
+    if (abs(ij_prop-0.5) > 0.4) next
+    bg_plot(cd, i, bg, j)
+    bl_plot(cd, i, bg, j, bl)
+    display_bl_counts(bl_counts, i, j)
+    display_bg_counts(bg_counts, i, j)
   }
 }
 ```
