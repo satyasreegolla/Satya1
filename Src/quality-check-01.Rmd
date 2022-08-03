@@ -42,9 +42,9 @@ glimpse(red)
 ### Calculate mismatches
 
 Do a full join of bl and red. Mismatches are coded as 
-  m_code=0 perfect match
-  m_code=1 not found in red
-  m_code=2 not found in bl
++ m_code=0 perfect match
++ m_code=1 not found in red
++ m_code=2 not found in bl
   
   
 
@@ -57,6 +57,10 @@ bl                                    %>%
   mutate(
     m_bl=as.numeric(is.na(bl_name)))  %>%
   mutate(m_code=m_red+2*m_bl)          -> m
+m %>%
+  group_by(m_code)                    %>%
+  summarize(n=n())                    %>%
+  print
 m                                     %>%
   filter(m_code > 0)                  %>%
   print
@@ -68,3 +72,4 @@ m                                     %>%
 
 [c_redistricting]: https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html
 
+There are no mismatches.

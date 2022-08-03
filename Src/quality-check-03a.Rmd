@@ -143,7 +143,7 @@ display_blocks <- function(bl_counts, i, j) {
     filter(bg_id==j)                   %>%
     select(
       bl_id,
-      bl_prop_in,
+      prop_in,
       people_in,
       units_in)                        %>%
     data.frame                         %>%
@@ -160,8 +160,7 @@ display_blocks <- function(bl_counts, i, j) {
 
 
 ```{r loop}
-for (i in cd_list[7]) {
-  i <- 209
+for (i in cd_list) {
   county_plot(co, cd, i)
   bg_list <- extract_bg(bl_counts, i)
   for (j in bg_list) {
