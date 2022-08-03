@@ -50,8 +50,8 @@ all_tract_mo                           %>%
 
 ```{r combine-tracts} 
 all_tract_ks                           %>%
-  bind_rows(all_tract_mo)  -> mo_ks_tracts 
-mo_ks_tracts                           %>%
+  bind_rows(all_tract_mo)  -> tr
+tr                                     %>%
  ggplot()                               +
       geom_sf(aes())                    +
       ggtitle("mo-ks-tracts")  
@@ -72,52 +72,25 @@ variable in the file
   +   "INTPTLON10"
   +   "geometry"
   
-### Community districts
+### Rename variables
 
-This shapefile, Community_District, was provided by Neal Wilson. The various functions described in the US counties shapefiles section will be used here.
-
-
-```{r read-Community-Districts}
-file_name <- "cd/Community_District.shp"
-path_name                              %>%
-  paste(file_name, sep="/")            %>%
-  st_read(stringsAsFactors=FALSE)      -> Community_Districts
-head(Community_Districts) 
-Community_Districts                  %>%
-  ggplot()                              +
-      geom_sf(aes())                    +
-      ggtitle("Community_Districts")
-Community_Districts %>%
-  st_transform(crs=st_crs(mo_ks_tracts)) -> cd
+```{r rename}
+tr                                     %>%
+  mutate(tr_id=GEOID)                  %>%
+  rename(tr_name=NAMELSAD)             %>%
+  mutate(
+    tr_area=
+      as.numeric(st_area(tr)))         %>%
+  select(
+    tr_id,
+    tr_name,
+    tr_area,
+    geometry)                           -> tr
+glimpse(tr)
 ```
 
+### Store as RData
 
-### Calculate intersections
-
-#### Intersection of tracts with community districts
-
-Each community district will reside entirely inside a single county, and it is obvious to anyone familiar with the Kansas City metropolitan area which county is would be, so this is done mostly for the sake of continuity and completeness.
-
-It is important that both the tracts and the community districts use a common coordinate reference system. It is uncelar WHICH coordinate reference system is best, but this is controlled by the st_crs function of the sf package.
-
-The st_intersects function will evaluate to TRUE if two shapefiles intersect. The st_area function will give the area of a shapefile and the st_intersection function will produce a new shapefile from the intersection of two shapefiles.
-
-
-```{r intersect-mo-ks-tracts-Community-Districts}
-for (i in 1:2) { 
-mo_ks_tracts                                   %>%
-  st_intersects( cd[i,], sparse=FALSE) -> intersect_matrix
-  total_area  <- st_area(mo_ks_tracts[intersect_matrix,]) / 1000000
-  intersect_area <- st_area(st_intersection(mo_ks_tracts[intersect_matrix,],cd[i,])) / 1000000 
-  print(intersect_area/total_area)
-  mo_ks_tracts[intersect_matrix,]               %>%
-    ggplot(aes())  +
-      geom_sf(fill=NA, col="darkgreen")      +
-      geom_sf(data = cd[i,], fill=NA, col="darkred")  -> map
-  print(map)}
+```{r save}
+save(tr, file="../data/tr.RData")
 ```
-
-
-
-
-
