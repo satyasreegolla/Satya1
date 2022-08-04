@@ -74,22 +74,6 @@ tr_mo                                  %>%
 ```
 
 ```{r combine-tracts} 
-co_list <- c(
-  "20091",
-  "20103",
-  "20209",
-  "29037",
-  "29047",
-  "29095",
-  "29165")
-
-all_tract_ks                           %>%
-  bind_rows(all_tract_mo)              %>%
-  mutate(tr_id=GEOID)                  %>%
-  mutate(co_id=str_sub(tr_id, 1, 5))   %>%
-  filter(co_id %in% co_list)           %>%
-  rename(tr_name=NAMELSAD)              -> tr
-
 tr                                     %>%
   mutate(
     tr_area=
