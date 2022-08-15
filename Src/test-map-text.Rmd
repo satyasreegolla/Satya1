@@ -1,0 +1,101 @@
+---
+title: "Test map text"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-07-15"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+This program tests the writing of text on maps.
+
+### Load relevant files
+
+```{r setup}
+# Important abbreviations:
+#    bg = block group
+#    bl = block
+#    cd = community district
+#    co = county
+#    nbd=neighborhood
+#    tr = tract
+
+library(glue)
+library(magrittr)
+library(sf)
+library(tidyverse)
+path_name <- "../data/"
+```
+
+### Contents of bg
+
+```{r}
+load(glue("{path_name}bg.RData"))
+glimpse(bg)
+```
+
+### Contents of bl
+
+```{r}
+load(glue("{path_name}bl.RData"))
+glimpse(bl)
+```
+
+### Contents of cd
+
+```{r}
+load(glue("{path_name}cd.RData"))
+glimpse(cd)
+```
+
+### Contents of co
+
+```{r}
+load(glue("{path_name}co.RData"))
+glimpse(co)
+```
+
+### Contents of cd-intersections
+
+```{r}
+load(glue("{path_name}cd-intersections.RData"))
+glimpse(bg_cd_intersection)
+glimpse(bl_cd_intersection)
+```
+
+### Contents of cd-weights
+
+```{r}
+load(glue("{path_name}cd-weights.RData"))
+glimpse(bg_counts)
+glimpse(bg_list)
+glimpse(bl_counts)
+glimpse(bl_list)
+```
+
+### Subset co to seven counties
+
+```{r}
+clist <- c(
+  "20091",
+  "20103",
+  "20209",
+  "29037",
+  "29047",
+  "29095",
+  "29165")
+co                                     %>%
+  filter(GEOID %in% clist)              -> co
+glimpse(co)
+```
+
+### Draw counties
+
+```{r}
+ggplot(co, aes(label=NAME))                        +
+  geom_sf()                                        +
+  geom_sf_text()                                   +
+  xlab("Longitude")                                +
+  ylab("Latitude")
+```

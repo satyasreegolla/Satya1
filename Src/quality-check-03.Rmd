@@ -26,29 +26,57 @@ library(magrittr)
 library(sf)
 library(tidyverse)
 path_name <- "../data/"
+```
 
+### Contents of bg
+
+```{r}
 load(glue("{path_name}bg.RData"))
 glimpse(bg)
+```
 
+### Contents of bl
+
+```{r}
 load(glue("{path_name}bl.RData"))
 glimpse(bl)
+```
 
+### Contents of cd
+
+```{r}
 load(glue("{path_name}cd.RData"))
 glimpse(cd)
+```
 
+### Contents of co
+
+```{r}
 load(glue("{path_name}co.RData"))
 glimpse(co)
+```
 
+### Contents of cd-intersections
+
+```{r}
 load(glue("{path_name}cd-intersections.RData"))
 glimpse(bg_cd_intersection)
 glimpse(bl_cd_intersection)
+```
 
+### Contents of cd-weights
+
+```{r}
 load(glue("{path_name}cd-weights.RData"))
 glimpse(bg_counts)
 glimpse(bg_list)
 glimpse(bl_counts)
 glimpse(bl_list)
+```
 
+### Subset co to seven counties
+
+```{r}
 clist <- c(
   "20091",
   "20103",
@@ -61,6 +89,8 @@ co                                     %>%
   filter(GEOID %in% clist)              -> co
 glimpse(co)
 ```
+
+### Display functions
 
 ```{r display-functions}
 # These functions display people and housing units
@@ -114,9 +144,29 @@ display_bl_inside_outside_cd <- function(bl_cd_intersection, bg, i, j) {
 }
 ```
 
+### Plot functions
+
 ```{r plot-functions}
 # These functions plot various census, 
 # community, or neighborhood  geographies.
+
+add_red_border <- function(mapx, geo) {
+  mapx                                    +
+    geom_sf(
+      data=geo,
+      aes(),
+      fill=NA,
+      color="darkred")
+}
+
+add_green_interior <- function(mapx, geo) {
+  mapx                                    +
+    geom_sf(
+      data=geo,
+      aes(),
+      fill="lightgreen",
+      color=NA)
+}
 
 plot_bg <- function(cd, i_cd, bg, i_bg, bl) {
   cd_subset <- filter(cd, cd_id==i_cd)
@@ -179,44 +229,70 @@ plot_cd <- function(cd, i_cd, bg, i_bg, bg_info=i_bg) {
     ggtitle(ti)                         -> cd_map
   plot(cd_map)
 }
-
-plot_co <- function(co, cd, i_cd) {
-  cd_subset <- filter(cd, cd_id==i_cd)
-  ti <- glue("{cd_subset$cd_name} ({i_cd})")
-  ggplot(co, aes())                     +
-    geom_sf(
-      fill=NA,
-      color="darkred")                  +
-    ggtitle(ti)                         +
-    geom_sf(
-      data=cd_subset,
-      aes(),
-      fill="lightgreen",
-      color=NA)               -> co_map
-  plot(co_map)
-}
 ```
 
-```{r loop}
-# Loop through the various communities, draw
-# maps, and display tables.
+### Subset cd
 
-lo <- 0.01
-hi <- 0.99
-
+```{r}
 cd                                     %>%
   tibble                               %>%
   distinct(cd_id)                      %>%
   arrange(cd_id)                       %>%
   pull(cd_id)                           -> cd_list
-  return
+```
 
-for (i_cd in cd_list[2:2]) {
-  plot_co(co, cd, i_cd)
-  bg_cd_intersection                     %>%
-    filter(cd_id==i_cd)                  %>%
-    select(bg_id, bg_prop_in)             -> bg_subset
-  print(bg_subset)
+### High level view
+
+```{r loop}
+for (i_cd in cd_list[2:4]) {
+  cd_subset <- filter(cd, cd_id==i_cd) 
+  ti <- cd_subset$cd_name
+  ggplot(cd_subset, aes())              +
+    # geom_sf_text(co, aes(label=NAME))   +
+    ggtitle(ti)                         +
+    xlab("Longitude")                   +
+    ylab("Latitude")                    +
+    geom_sf(
+      data=co,
+      aes(),
+      fill=NA,
+      color="darkred")   +
+    geom_sf(
+      data=cd_subset,
+      fill="lightgreen",
+      color=NA)                         -> map1
+  print(map1)
+  next
+  bg_cd_intersection                   %>%
+    filter(cd_id==i_cd)                %>%
+    pull(bg_id)                         -> bg_list
+  bg                                   %>%
+    filter(bg_id %in% bg_list)          -> bg_subset
+
+  ggplot(cd_subset)                     +
+    ggtitle(ti)                         +
+    xlab("Longitude")                   +
+    ylab("Latitude")                   %>%
+    add_green_interior(cd_subset)      %>%
+    add_red_border(bg_subset)           -> map2
+  plot(map2)
+
+  for (i_bg in bg_list) {
+    bl_subset <- filter(bl, str_sub(bl_id, 1, 12)==i_bg)
+    ggplot()                           %>%
+      ggtitle(ti)                       +
+      xlab("Longitude")                 +
+      ylab("Latitude")                 %>%
+      add_green_interior(cd_subset)    %>%
+      add_red_border(bl_subset)         -> map3
+      plot(map3)
+  }
+}
+```
+
+```{r}
+for (i_cd in cd_list[2:4]) {
+  next
   bg_n1 <- dim(bg_subset)[1]
   bg_n2 <- sum(bg_subset$bg_prop_in==1)
   bg_n3 <- sum(bg_subset$bg_prop_in > hi & bg_subset$bg_prop_in != 1)
@@ -230,8 +306,8 @@ for (i_cd in cd_list[2:2]) {
     "{bg_n4} block groups lie partially inside community district\n",
     "{bg_n5} block groups lie mostly outside community district\n")
   cat(bg_message)
-  plot_cd(cd, i_cd, bg, bg_subset$bg_id, "block groups touching or interesecting")
-  plot_cd(cd, i_cd, bg, bg_subset$bg_id, "block groups touching or interesecting")
+  plot_cd(cd, i_cd, bg, bg_subset$bg_id, "block groups touching or intersecting")
+  plot_cd(cd, i_cd, bg, bg_subset$bg_id, "block groups touching or intersecting")
     for (i_bg in bg_subset$bg_id) {
     bg_cd_intersection                   %>%
       filter(cd_id==i_cd)                %>%

@@ -74,6 +74,13 @@ tr_mo                                  %>%
 ```
 
 ```{r combine-tracts} 
+### Combine Kansas and Missouri
+
+tr_ks                                  %>%
+  bind_rows(tr_mo)                     %>%
+  rename(tr_id=GEOID)                  %>%
+  rename(tr_name=NAMELSAD)              -> tr
+
 tr                                     %>%
   mutate(
     tr_area=

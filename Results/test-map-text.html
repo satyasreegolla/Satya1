@@ -12,7 +12,7 @@
 <meta name="author" content="Satya Golla and Steve Simon" />
 
 
-<title>Store redistricting information</title>
+<title>Test map text</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -362,29 +362,27 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Store redistricting information</h1>
+<h1 class="title toc-ignore">Test map text</h1>
 <h4 class="author">Satya Golla and Steve Simon</h4>
-<h4 class="date">Created 2022-03-08</h4>
+<h4 class="date">Created 2022-07-15</h4>
 
 </div>
 
 
-<p>This program will read in census redistricting files which provide
-population and housing counts for every census block in every state in
-the U.S.</p>
-<div id="general-information" class="section level3">
-<h3>General information</h3>
-<p>The starting point for data and information about the redistricting
-files is <a href="https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html">here</a>.</p>
-<p>This program is based on pl_geohd_2020_dar.r, which is part of <a href="https://www2.census.gov/programs-surveys/decennial/rdo/about/2020-census-program/Phase3/SupportMaterials/2020PL_R_import_scripts.zip">this
-zip file</a>.</p>
-<p>An important contact at City Hall in Kansas City, Missouri is Steve
-Lebowski. He has done similar work every time new Census information is
-available.</p>
-</div>
-<div id="setup" class="section level3">
-<h3>Setup</h3>
-<pre class="r"><code>library(sf)</code></pre>
+<p>This program tests the writing of text on maps.</p>
+<div id="load-relevant-files" class="section level3">
+<h3>Load relevant files</h3>
+<pre class="r"><code># Important abbreviations:
+#    bg = block group
+#    bl = block
+#    cd = community district
+#    co = county
+#    nbd=neighborhood
+#    tr = tract
+
+library(glue)
+library(magrittr)
+library(sf)</code></pre>
 <pre><code>## Linking to GEOS 3.9.1, GDAL 3.2.1, PROJ 7.2.1; sf_use_s2() is TRUE</code></pre>
 <pre class="r"><code>library(tidyverse)</code></pre>
 <pre><code>## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --</code></pre>
@@ -393,301 +391,128 @@ available.</p>
 ## v tidyr   1.2.0     v stringr 1.4.0
 ## v readr   2.1.2     v forcats 0.5.1</code></pre>
 <pre><code>## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>path_name &lt;- &quot;../data/&quot;
-load(paste0(path_name, &quot;bl&quot;, &quot;.RData&quot;))
-load(paste0(path_name, &quot;nbd&quot;, &quot;.RData&quot;))
-vnames &lt;- c(
-  &quot;FILEID&quot;, 
-  &quot;STUSAB&quot;, 
-  &quot;SUMLEV&quot;, 
-  &quot;GEOVAR&quot;, 
-  &quot;GEOCOMP&quot;, 
-  &quot;CHARITER&quot;, 
-  &quot;CIFSN&quot;, 
-  &quot;LOGRECNO&quot;, 
-  &quot;GEOID&quot;, 
-  &quot;GEOCODE&quot;,
-  &quot;REGION&quot;,
-  &quot;DIVISION&quot;,
-  &quot;STATE&quot;,
-  &quot;STATENS&quot;,
-  &quot;COUNTY&quot;,
-  &quot;COUNTYCC&quot;,
-  &quot;COUNTYNS&quot;,
-  &quot;COUSUB&quot;,
-  &quot;COUSUBCC&quot;,
-  &quot;COUSUBNS&quot;,
-  &quot;SUBMCD&quot;,
-  &quot;SUBMCDCC&quot;,
-  &quot;SUBMCDNS&quot;,
-  &quot;ESTATE&quot;,
-  &quot;ESTATECC&quot;,
-  &quot;ESTATENS&quot;, 
-  &quot;CONCIT&quot;,
-  &quot;CONCITCC&quot;,
-  &quot;CONCITNS&quot;,
-  &quot;PLACE&quot;,
-  &quot;PLACECC&quot;,
-  &quot;PLACENS&quot;,
-  &quot;TRACT&quot;,
-  &quot;BLKGRP&quot;,
-  &quot;BLOCK&quot;, 
-  &quot;AIANHH&quot;,
-  &quot;AIHHTLI&quot;,
-  &quot;AIANHHFP&quot;,
-  &quot;AIANHHCC&quot;,
-  &quot;AIANHHNS&quot;,
-  &quot;AITS&quot;,
-  &quot;AITSFP&quot;,
-  &quot;AITSCC&quot;,
-  &quot;AITSNS&quot;,
-  &quot;TTRACT&quot;,
-  &quot;TBLKGRP&quot;,
-  &quot;ANRC&quot;,
-  &quot;ANRCCC&quot;,
-  &quot;ANRCNS&quot;,
-  &quot;CBSA&quot;,
-  &quot;MEMI&quot;,
-  &quot;CSA&quot;,
-  &quot;METDIV&quot;,
-  &quot;NECTA&quot;,
-  &quot;NMEMI&quot;,
-  &quot;CNECTA&quot;,
-  &quot;NECTADIV&quot;,
-  &quot;CBSAPCI&quot;,
-  &quot;NECTAPCI&quot;,
-  &quot;UA&quot;,
-  &quot;UATYPE&quot;,
-  &quot;UR&quot;,
-  &quot;CD116&quot;,
-  &quot;CD118&quot;,
-  &quot;CD119&quot;, 
-  &quot;CD120&quot;, 
-  &quot;CD121&quot;, 
-  &quot;SLDU18&quot;, 
-  &quot;SLDU22&quot;, 
-  &quot;SLDU24&quot;, 
-  &quot;SLDU26&quot;, 
-  &quot;SLDU28&quot;, 
-  &quot;SLDL18&quot;, 
-  &quot;SLDL22&quot;,
-  &quot;SLDL24&quot;,
-  &quot;SLDL26&quot;,
-  &quot;SLDL28&quot;,
-  &quot;VTD&quot;,
-  &quot;VTDI&quot;,
-  &quot;ZCTA&quot;,
-  &quot;SDELM&quot;,
-  &quot;SDSEC&quot;,
-  &quot;SDUNI&quot;,
-  &quot;PUMA&quot;,
-  &quot;AREALAND&quot;,
-  &quot;AREAWATR&quot;,
-  &quot;BASENAME&quot;,
-  &quot;NAME&quot;,
-  &quot;FUNCSTAT&quot;,
-  &quot;GCUNI&quot;,
-  &quot;POP100&quot;,
-  &quot;HU100&quot;,
-  &quot;INTPTLAT&quot;,
-  &quot;INTPTLON&quot;,
-  &quot;LSADC&quot;,
-  &quot;PARTFLAG&quot;,
-  &quot;UGA&quot;)</code></pre>
+## x tidyr::extract()   masks magrittr::extract()
+## x dplyr::filter()    masks stats::filter()
+## x dplyr::lag()       masks stats::lag()
+## x purrr::set_names() masks magrittr::set_names()</code></pre>
+<pre class="r"><code>path_name &lt;- &quot;../data/&quot;</code></pre>
 </div>
-<div id="read-kansas-redistricting-files" class="section level3">
-<h3>Read Kansas redistricting files</h3>
-<p>Setting SUMLEV==“750” produces information for individual census
-blocks. Setting it to SUM==“150” produce information for individual
-block groups.</p>
-<pre class="r"><code>file_name &lt;- &quot;red/ksgeo2020.pl&quot;
-path_name                              %&gt;%
-  paste0(file_name)                    %&gt;%
-  read.delim(
-    header=FALSE, 
-    colClasses=&quot;character&quot;, 
-    sep=&quot;|&quot;)                           -&gt; red1
-names(red1) &lt;- vnames
-red1                                  %&gt;%
-  filter(SUMLEV == &quot;750&quot;)              -&gt; red1
-red1                                  %&gt;%
-  head</code></pre>
-<pre><code>##   FILEID STUSAB SUMLEV GEOVAR GEOCOMP CHARITER CIFSN LOGRECNO
-## 1   PLST     KS    750     00      00      000    00  0087484
-## 2   PLST     KS    750     00      00      000    00  0087485
-## 3   PLST     KS    750     00      00      000    00  0087486
-## 4   PLST     KS    750     00      00      000    00  0087487
-## 5   PLST     KS    750     00      00      000    00  0087488
-## 6   PLST     KS    750     00      00      000    00  0087489
-##                      GEOID         GEOCODE REGION DIVISION STATE  STATENS
-## 1 7500000US200019526001000 200019526001000      2        4    20 00481813
-## 2 7500000US200019526001001 200019526001001      2        4    20 00481813
-## 3 7500000US200019526001002 200019526001002      2        4    20 00481813
-## 4 7500000US200019526001003 200019526001003      2        4    20 00481813
-## 5 7500000US200019526001004 200019526001004      2        4    20 00481813
-## 6 7500000US200019526001005 200019526001005      2        4    20 00481813
-##   COUNTY COUNTYCC COUNTYNS COUSUB COUSUBCC COUSUBNS SUBMCD SUBMCDCC SUBMCDNS
-## 1    001       H1 00484970  53075       T1 00478140                         
-## 2    001       H1 00484970  53075       T1 00478140                         
-## 3    001       H1 00484970  53075       T1 00478140                         
-## 4    001       H1 00484970  53075       T1 00478140                         
-## 5    001       H1 00484970  53075       T1 00478140                         
-## 6    001       H1 00484970  53075       T1 00478140                         
-##   ESTATE ESTATECC ESTATENS CONCIT CONCITCC CONCITNS PLACE PLACECC  PLACENS
-## 1                           99999       99 99999999 99999      99 99999999
-## 2                           99999       99 99999999 99999      99 99999999
-## 3                           99999       99 99999999 99999      99 99999999
-## 4                           99999       99 99999999 99999      99 99999999
-## 5                           99999       99 99999999 99999      99 99999999
-## 6                           99999       99 99999999 99999      99 99999999
-##    TRACT BLKGRP BLOCK AIANHH AIHHTLI AIANHHFP AIANHHCC AIANHHNS AITS AITSFP
-## 1 952600      1  1000   9999       9    99999       99 99999999  999  99999
-## 2 952600      1  1001   9999       9    99999       99 99999999  999  99999
-## 3 952600      1  1002   9999       9    99999       99 99999999  999  99999
-## 4 952600      1  1003   9999       9    99999       99 99999999  999  99999
-## 5 952600      1  1004   9999       9    99999       99 99999999  999  99999
-## 6 952600      1  1005   9999       9    99999       99 99999999  999  99999
-##   AITSCC   AITSNS TTRACT TBLKGRP  ANRC ANRCCC   ANRCNS  CBSA MEMI CSA METDIV
-## 1     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-## 2     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-## 3     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-## 4     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-## 5     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-## 6     99 99999999 999999       9 99999     99 99999999 99999    9 999  99999
-##   NECTA NMEMI CNECTA NECTADIV CBSAPCI NECTAPCI UA UATYPE UR CD116 CD118 CD119
-## 1 99999     9    999    99999       9        9                 02            
-## 2 99999     9    999    99999       9        9                 02            
-## 3 99999     9    999    99999       9        9                 02            
-## 4 99999     9    999    99999       9        9                 02            
-## 5 99999     9    999    99999       9        9                 02            
-## 6 99999     9    999    99999       9        9                 02            
-##   CD120 CD121 SLDU18 SLDU22 SLDU24 SLDU26 SLDU28 SLDL18 SLDL22 SLDL24 SLDL26
-## 1                012                                002                     
-## 2                012                                002                     
-## 3                012                                002                     
-## 4                012                                002                     
-## 5                012                                002                     
-## 6                012                                002                     
-##   SLDL28    VTD VTDI ZCTA SDELM SDSEC SDUNI PUMA AREALAND AREAWATR BASENAME
-## 1        000170    P      99999 99999 09660       1261054     3981     1000
-## 2        000170    P      99999 99999 09660       1310368     4231     1001
-## 3        000170    P      99999 99999 09660       1208094     4058     1002
-## 4        000170    P      99999 99999 09660       2377540     5091     1003
-## 5        000170    P      99999 99999 09660       1601891     1772     1004
-## 6        000170    P      99999 99999 09660         40731        0     1005
-##         NAME FUNCSTAT GCUNI POP100 HU100    INTPTLAT     INTPTLON LSADC
-## 1 Block 1000        S            3     1 +38.0339223 -095.0868798    BK
-## 2 Block 1001        S            8     3 +38.0342581 -095.1087615    BK
-## 3 Block 1002        S            7     3 +38.0304089 -095.1191901    BK
-## 4 Block 1003        S            0     0 +38.0315672 -095.1321728    BK
-## 5 Block 1004        S            0     0 +38.0343857 -095.1554296    BK
-## 6 Block 1005        S            0     0 +38.0363729 -095.1708784    BK
-##   PARTFLAG   UGA
-## 1          99999
-## 2          99999
-## 3          99999
-## 4          99999
-## 5          99999
-## 6          99999</code></pre>
+<div id="contents-of-bg" class="section level3">
+<h3>Contents of bg</h3>
+<pre class="r"><code>load(glue(&quot;{path_name}bg.RData&quot;))
+glimpse(bg)</code></pre>
+<pre><code>## Rows: 1,684
+## Columns: 4
+## $ bg_id    &lt;chr&gt; &quot;201039819003&quot;, &quot;201030714004&quot;, &quot;201030711041&quot;, &quot;201030712051~
+## $ bg_name  &lt;chr&gt; &quot;Block Group 3&quot;, &quot;Block Group 4&quot;, &quot;Block Group 1&quot;, &quot;Block Gro~
+## $ bg_area  &lt;dbl&gt; 984975.5, 36602869.0, 18313082.5, 26007918.3, 11448660.8, 243~
+## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.94756 39.3373..., POLYGON ((-95.18756 3~</code></pre>
 </div>
-<div id="read-missouri-redistricting-files" class="section level3">
-<h3>Read Missouri redistricting files</h3>
-<pre class="r"><code>file_name &lt;- &quot;red/mogeo2020.pl&quot;
-path_name                              %&gt;%
-  paste(file_name, sep=&quot;/&quot;)            %&gt;%
-  read.delim(
-    header=FALSE, 
-    colClasses=&quot;character&quot;, 
-    sep=&quot;|&quot;)                           -&gt; red2
-names(red2) &lt;- vnames
-red2                                  %&gt;%
-  filter(SUMLEV == &quot;750&quot;)              -&gt; red2
-red2                                  %&gt;%
-  head</code></pre>
-<pre><code>##   FILEID STUSAB SUMLEV GEOVAR GEOCOMP CHARITER CIFSN LOGRECNO
-## 1   PLST     MO    750     00      00      000    00  0126110
-## 2   PLST     MO    750     00      00      000    00  0126111
-## 3   PLST     MO    750     00      00      000    00  0126112
-## 4   PLST     MO    750     00      00      000    00  0126113
-## 5   PLST     MO    750     00      00      000    00  0126114
-## 6   PLST     MO    750     00      00      000    00  0126115
-##                      GEOID         GEOCODE REGION DIVISION STATE  STATENS
-## 1 7500000US290019501001000 290019501001000      2        4    29 01779791
-## 2 7500000US290019501001001 290019501001001      2        4    29 01779791
-## 3 7500000US290019501001002 290019501001002      2        4    29 01779791
-## 4 7500000US290019501001003 290019501001003      2        4    29 01779791
-## 5 7500000US290019501001004 290019501001004      2        4    29 01779791
-## 6 7500000US290019501001005 290019501001005      2        4    29 01779791
-##   COUNTY COUNTYCC COUNTYNS COUSUB COUSUBCC COUSUBNS SUBMCD SUBMCDCC SUBMCDNS
-## 1    001       H1 00765805  14248       Z1 00766211                         
-## 2    001       H1 00765805  14248       Z1 00766211                         
-## 3    001       H1 00765805  14248       Z1 00766211                         
-## 4    001       H1 00765805  14248       Z1 00766211                         
-## 5    001       H1 00765805  14248       Z1 00766211                         
-## 6    001       H1 00765805  14248       Z1 00766211                         
-##   ESTATE ESTATECC ESTATENS CONCIT CONCITCC CONCITNS PLACE PLACECC  PLACENS
-## 1                           99999       99 99999999 99999      99 99999999
-## 2                           99999       99 99999999 99999      99 99999999
-## 3                           99999       99 99999999 99999      99 99999999
-## 4                           99999       99 99999999 99999      99 99999999
-## 5                           99999       99 99999999 99999      99 99999999
-## 6                           99999       99 99999999 99999      99 99999999
-##    TRACT BLKGRP BLOCK AIANHH AIHHTLI AIANHHFP AIANHHCC AIANHHNS AITS AITSFP
-## 1 950100      1  1000   9999       9    99999       99 99999999  999  99999
-## 2 950100      1  1001   9999       9    99999       99 99999999  999  99999
-## 3 950100      1  1002   9999       9    99999       99 99999999  999  99999
-## 4 950100      1  1003   9999       9    99999       99 99999999  999  99999
-## 5 950100      1  1004   9999       9    99999       99 99999999  999  99999
-## 6 950100      1  1005   9999       9    99999       99 99999999  999  99999
-##   AITSCC   AITSNS TTRACT TBLKGRP  ANRC ANRCCC   ANRCNS  CBSA MEMI CSA METDIV
-## 1     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-## 2     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-## 3     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-## 4     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-## 5     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-## 6     99 99999999 999999       9 99999     99 99999999 28860    2 999  99999
-##   NECTA NMEMI CNECTA NECTADIV CBSAPCI NECTAPCI UA UATYPE UR CD116 CD118 CD119
-## 1 99999     9    999    99999       9        9                 06            
-## 2 99999     9    999    99999       9        9                 06            
-## 3 99999     9    999    99999       9        9                 06            
-## 4 99999     9    999    99999       9        9                 06            
-## 5 99999     9    999    99999       9        9                 06            
-## 6 99999     9    999    99999       9        9                 06            
-##   CD120 CD121 SLDU18 SLDU22 SLDU24 SLDU26 SLDU28 SLDL18 SLDL22 SLDL24 SLDL26
-## 1                018                                004                     
-## 2                018                                004                     
-## 3                018                                004                     
-## 4                018                                004                     
-## 5                018                                004                     
-## 6                018                                004                     
-##   SLDL28    VTD VTDI ZCTA SDELM SDSEC SDUNI PUMA AREALAND AREAWATR BASENAME
-## 1        000002    P      99999 99999 05790       5243440        0     1000
-## 2        000002    P      99999 99999 05790       2796200        0     1001
-## 3        000002    P      99999 99999 05790       3550451        0     1002
-## 4        000002    P      99999 99999 05790       1584957        0     1003
-## 5        000002    P      99999 99999 05790       3043003        0     1004
-## 6        000002    P      99999 99999 05790       1302462        0     1005
-##         NAME FUNCSTAT GCUNI POP100 HU100    INTPTLAT     INTPTLON LSADC
-## 1 Block 1000        S            2     2 +40.3392346 -092.3689333    BK
-## 2 Block 1001        S            7     3 +40.3372244 -092.3959646    BK
-## 3 Block 1002        S           10     5 +40.3362421 -092.4132093    BK
-## 4 Block 1003        S            2     2 +40.3378874 -092.4273966    BK
-## 5 Block 1004        S           15     4 +40.3364782 -092.4400205    BK
-## 6 Block 1005        S            4     2 +40.3381197 -092.4558059    BK
-##   PARTFLAG   UGA
-## 1          99999
-## 2          99999
-## 3          99999
-## 4          99999
-## 5          99999
-## 6          99999</code></pre>
+<div id="contents-of-bl" class="section level3">
+<h3>Contents of bl</h3>
+<pre class="r"><code>load(glue(&quot;{path_name}bl.RData&quot;))
+glimpse(bl)</code></pre>
+<pre><code>## Rows: 39,903
+## Columns: 4
+## $ bl_id    &lt;chr&gt; &quot;200910518012010&quot;, &quot;200910514003006&quot;, &quot;200910515002005&quot;, &quot;200~
+## $ bl_name  &lt;chr&gt; &quot;Block 2010&quot;, &quot;Block 3006&quot;, &quot;Block 2005&quot;, &quot;Block 1009&quot;, &quot;Bloc~
+## $ bl_area  &lt;dbl&gt; 38500.823, 51711.677, 104537.047, 73933.762, 95854.528, 19934~
+## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.64213 38.9774..., POLYGON ((-94.63966 3~</code></pre>
 </div>
-<div id="store-as-an-rdata-file" class="section level3">
-<h3>Store as an RData file</h3>
-<p>Placing the file in an RData format will speed up future use of this
-file.</p>
+<div id="contents-of-cd" class="section level3">
+<h3>Contents of cd</h3>
+<pre class="r"><code>load(glue(&quot;{path_name}cd.RData&quot;))
+glimpse(cd)</code></pre>
+<pre><code>## Rows: 59
+## Columns: 4
+## $ cd_id    &lt;dbl&gt; 106, 108, 113, 102, 129, 116, 114, 101, 105, 103, 107, 109, 1~
+## $ cd_name  &lt;chr&gt; &quot;East Side&quot;, &quot;Old Northeast&quot;, &quot;Greater Downtown&quot;, &quot;Blue Valle~
+## $ cd_area  &lt;dbl&gt; 281713850, 118237219, 181920811, 216842678, 412671242, 264282~
+## $ geometry &lt;POLYGON [°]&gt; POLYGON ((-94.52337 39.0941..., POLYGON ((-94.50777 3~</code></pre>
+</div>
+<div id="contents-of-co" class="section level3">
+<h3>Contents of co</h3>
+<pre class="r"><code>load(glue(&quot;{path_name}co.RData&quot;))
+glimpse(co)</code></pre>
+<pre><code>## Rows: 220
+## Columns: 19
+## $ STATEFP  &lt;chr&gt; &quot;29&quot;, &quot;29&quot;, &quot;20&quot;, &quot;20&quot;, &quot;20&quot;, &quot;29&quot;, &quot;29&quot;, &quot;20&quot;, &quot;20&quot;, &quot;29&quot;, &quot;~
+## $ COUNTYFP &lt;chr&gt; &quot;083&quot;, &quot;011&quot;, &quot;073&quot;, &quot;043&quot;, &quot;157&quot;, &quot;103&quot;, &quot;117&quot;, &quot;039&quot;, &quot;147&quot;~
+## $ COUNTYNS &lt;chr&gt; &quot;00758496&quot;, &quot;00758460&quot;, &quot;00485003&quot;, &quot;00484991&quot;, &quot;00485042&quot;, &quot;~
+## $ GEOID    &lt;chr&gt; &quot;29083&quot;, &quot;29011&quot;, &quot;20073&quot;, &quot;20043&quot;, &quot;20157&quot;, &quot;29103&quot;, &quot;29117&quot;~
+## $ NAME     &lt;chr&gt; &quot;Henry&quot;, &quot;Barton&quot;, &quot;Greenwood&quot;, &quot;Doniphan&quot;, &quot;Republic&quot;, &quot;Knox~
+## $ NAMELSAD &lt;chr&gt; &quot;Henry County&quot;, &quot;Barton County&quot;, &quot;Greenwood County&quot;, &quot;Donipha~
+## $ LSAD     &lt;chr&gt; &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;~
+## $ CLASSFP  &lt;chr&gt; &quot;H1&quot;, &quot;H1&quot;, &quot;H1&quot;, &quot;H1&quot;, &quot;H1&quot;, &quot;H1&quot;, &quot;H1&quot;, &quot;H1&quot;, &quot;H1&quot;, &quot;H1&quot;, &quot;~
+## $ MTFCC    &lt;chr&gt; &quot;G4020&quot;, &quot;G4020&quot;, &quot;G4020&quot;, &quot;G4020&quot;, &quot;G4020&quot;, &quot;G4020&quot;, &quot;G4020&quot;~
+## $ CSAFP    &lt;chr&gt; NA, NA, NA, &quot;312&quot;, NA, NA, NA, NA, NA, &quot;312&quot;, NA, NA, NA, NA,~
+## $ CBSAFP   &lt;chr&gt; NA, NA, NA, &quot;41140&quot;, NA, NA, NA, NA, NA, &quot;47660&quot;, NA, &quot;21380&quot;~
+## $ METDIVFP &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N~
+## $ FUNCSTAT &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;~
+## $ ALAND    &lt;dbl&gt; 1805054746, 1533351028, 2961143636, 1019105691, 1857998463, 1~
+## $ AWATER   &lt;dbl&gt; 91657543, 12152201, 24145021, 12424174, 7951912, 7307094, 161~
+## $ INTPTLAT &lt;chr&gt; &quot;+38.3864909&quot;, &quot;+37.5007989&quot;, &quot;+37.8793472&quot;, &quot;+39.7885021&quot;, &quot;~
+## $ INTPTLON &lt;chr&gt; &quot;-093.7926278&quot;, &quot;-094.3440893&quot;, &quot;-096.2417321&quot;, &quot;-095.1472253~
+## $ geometry &lt;MULTIPOLYGON [°]&gt; MULTIPOLYGON (((-93.51565 3..., MULTIPOLYGON (((~
+## $ label    &lt;chr&gt; &quot;Henry&quot;, &quot;Barton&quot;, &quot;Greenwood&quot;, &quot;Doniphan&quot;, &quot;Republic&quot;, &quot;Knox~</code></pre>
+</div>
+<div id="contents-of-cd-intersections" class="section level3">
+<h3>Contents of cd-intersections</h3>
+<pre class="r"><code>load(glue(&quot;{path_name}cd-intersections.RData&quot;))
+glimpse(bg_cd_intersection)</code></pre>
+<pre><code>## Rows: 1,236
+## Columns: 3
+## $ bg_id      &lt;chr&gt; &quot;290950161001&quot;, &quot;290950166002&quot;, &quot;290950060001&quot;, &quot;2909500340~
+## $ cd_id      &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106,~
+## $ bg_prop_in &lt;dbl&gt; 0.8919314491, 1.0000000000, 1.0000000000, 1.0000000000, 0.3~</code></pre>
+<pre class="r"><code>glimpse(bl_cd_intersection)</code></pre>
+<pre><code>## Rows: 15,748
+## Columns: 5
+## $ tr_id      &lt;chr&gt; &quot;29095002300&quot;, &quot;29095006300&quot;, &quot;29095002200&quot;, &quot;29095002200&quot;,~
+## $ bg_id      &lt;chr&gt; &quot;290950023002&quot;, &quot;290950063002&quot;, &quot;290950022003&quot;, &quot;2909500220~
+## $ bl_id      &lt;chr&gt; &quot;290950023002014&quot;, &quot;290950063002017&quot;, &quot;290950022003001&quot;, &quot;2~
+## $ cd_id      &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106,~
+## $ bl_prop_in &lt;dbl&gt; 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 0.997, 0.001, 0.0~</code></pre>
+</div>
+<div id="contents-of-cd-weights" class="section level3">
+<h3>Contents of cd-weights</h3>
+<pre class="r"><code>load(glue(&quot;{path_name}cd-weights.RData&quot;))
+glimpse(bg_counts)</code></pre>
+<pre><code>## Rows: 1,236
+## Columns: 7
+## Groups: tr_id, bg_id [776]
+## $ tr_id     &lt;chr&gt; &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20091050100&quot;, ~
+## $ bg_id     &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500002&quot;, &quot;200910500003&quot;, &quot;20091050100~
+## $ cd_id     &lt;dbl&gt; 209, 209, 209, 209, 211, 209, 211, 211, 112, 112, 112, 111, ~
+## $ people_in &lt;dbl&gt; 1, 2, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, ~
+## $ units_in  &lt;dbl&gt; 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~
+## $ people    &lt;dbl&gt; 744, 695, 751, 1313, 1313, 1196, 643, 630, 778, 961, 1210, 9~
+## $ units     &lt;dbl&gt; 341, 311, 377, 648, 648, 549, 315, 444, 287, 335, 461, 430, ~</code></pre>
+<pre class="r"><code>glimpse(bg_list)</code></pre>
+<pre><code>##  chr [1:776] &quot;290950161001&quot; &quot;290950166002&quot; &quot;290950060001&quot; &quot;290950034004&quot; ...</code></pre>
+<pre class="r"><code>glimpse(bl_counts)</code></pre>
+<pre><code>## Rows: 21,578
+## Columns: 9
+## $ tr_id      &lt;chr&gt; &quot;29095002300&quot;, &quot;29095006300&quot;, &quot;29095002200&quot;, &quot;29095002200&quot;,~
+## $ bg_id      &lt;chr&gt; &quot;290950023002&quot;, &quot;290950063002&quot;, &quot;290950022003&quot;, &quot;2909500220~
+## $ bl_id      &lt;chr&gt; &quot;290950023002014&quot;, &quot;290950063002017&quot;, &quot;290950022003001&quot;, &quot;2~
+## $ cd_id      &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106,~
+## $ bl_prop_in &lt;dbl&gt; 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 0.997, 0.001, 0.0~
+## $ people     &lt;dbl&gt; 62, 0, 22, 26, 42, 49, 43, 0, 12, 20, 5, 56, 58, 48, 47, 13~
+## $ people_in  &lt;dbl&gt; 62, 0, 22, 26, 42, 49, 43, 0, 0, 20, 5, 56, 58, 48, 47, 13,~
+## $ units      &lt;dbl&gt; 18, 0, 9, 18, 22, 22, 14, 0, 1, 10, 4, 12, 19, 24, 28, 4, 4~
+## $ units_in   &lt;dbl&gt; 18, 0, 9, 18, 22, 22, 14, 0, 0, 10, 4, 12, 19, 24, 28, 4, 4~</code></pre>
+<pre class="r"><code>glimpse(bl_list)</code></pre>
+<pre><code>## Rows: 20,261
+## Columns: 5
+## $ tr_id  &lt;chr&gt; &quot;20091051500&quot;, &quot;20091053301&quot;, &quot;20091053302&quot;, &quot;20091053302&quot;, &quot;20~
+## $ bl_id  &lt;chr&gt; &quot;200910515002005&quot;, &quot;200910533013008&quot;, &quot;200910533024013&quot;, &quot;20091~
+## $ bg_id  &lt;chr&gt; &quot;200910515002&quot;, &quot;200910533013&quot;, &quot;200910533024&quot;, &quot;200910533024&quot;,~
+## $ people &lt;dbl&gt; 73, 54, 254, 125, 90, 39, 32, 86, 37, 35, 58, 35, 51, 47, 45, 5~
+## $ units  &lt;dbl&gt; 36, 27, 82, 36, 30, 17, 9, 27, 11, 21, 26, 15, 27, 29, 20, 33, ~</code></pre>
+</div>
+<div id="subset-co-to-seven-counties" class="section level3">
+<h3>Subset co to seven counties</h3>
 <pre class="r"><code>clist &lt;- c(
   &quot;20091&quot;,
   &quot;20103&quot;,
@@ -696,50 +521,41 @@ file.</p>
   &quot;29047&quot;,
   &quot;29095&quot;,
   &quot;29165&quot;)
-red1                                   %&gt;%
-  bind_rows(red2)                      %&gt;%
-  filter(BLOCK != &quot;&quot;)                  %&gt;%
-  filter(
-    paste0(STATE, COUNTY) 
-      %in% clist)                      %&gt;%
-  mutate(POP100=as.numeric(POP100))    %&gt;%
-  mutate(HU100=as.numeric(HU100))      %&gt;%
-  rename(people=POP100)                %&gt;%
-  rename(units=HU100)                  %&gt;%
-  rename(land_area=AREALAND)           %&gt;%
-  rename(water_area=AREAWATR)          %&gt;%
-  rename(block_lat=INTPTLAT)           %&gt;%
-  rename(block_lon=INTPTLON)           %&gt;%
-  mutate(
-    st_id=
-      str_sub(GEOCODE, 1,  2))         %&gt;%
-  mutate(
-    co_id=
-      str_sub(GEOCODE, 1,  5))         %&gt;%
-  mutate(
-    tr_id=
-      str_sub(GEOCODE, 1, 11))         %&gt;%
-  mutate(
-    bg_id=
-      str_sub(GEOCODE, 1, 12))         %&gt;%
-  mutate(
-    bl_id=
-      str_sub(GEOCODE, 1, 15))         %&gt;%
-  select(
-    tr_id,
-    bg_id,
-    bl_id,
-    people,
-    units) -&gt; red
-glimpse(red)</code></pre>
-<pre><code>## Rows: 39,903
-## Columns: 5
-## $ tr_id  &lt;chr&gt; &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20~
-## $ bg_id  &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;,~
-## $ bl_id  &lt;chr&gt; &quot;200910500001000&quot;, &quot;200910500001001&quot;, &quot;200910500001002&quot;, &quot;20091~
-## $ people &lt;dbl&gt; 52, 47, 51, 58, 138, 68, 35, 81, 39, 37, 35, 51, 52, 106, 45, 8~
-## $ units  &lt;dbl&gt; 33, 29, 27, 26, 70, 34, 18, 28, 12, 11, 15, 17, 21, 49, 20, 39,~</code></pre>
-<pre class="r"><code>save(red, file=&quot;../data/red.RData&quot;)</code></pre>
+co                                     %&gt;%
+  filter(GEOID %in% clist)              -&gt; co
+glimpse(co)</code></pre>
+<pre><code>## Rows: 7
+## Columns: 19
+## $ STATEFP  &lt;chr&gt; &quot;29&quot;, &quot;29&quot;, &quot;20&quot;, &quot;20&quot;, &quot;29&quot;, &quot;29&quot;, &quot;20&quot;
+## $ COUNTYFP &lt;chr&gt; &quot;037&quot;, &quot;165&quot;, &quot;091&quot;, &quot;209&quot;, &quot;095&quot;, &quot;047&quot;, &quot;103&quot;
+## $ COUNTYNS &lt;chr&gt; &quot;00758473&quot;, &quot;00758537&quot;, &quot;00485010&quot;, &quot;00485065&quot;, &quot;00758502&quot;, &quot;~
+## $ GEOID    &lt;chr&gt; &quot;29037&quot;, &quot;29165&quot;, &quot;20091&quot;, &quot;20209&quot;, &quot;29095&quot;, &quot;29047&quot;, &quot;20103&quot;
+## $ NAME     &lt;chr&gt; &quot;Cass&quot;, &quot;Platte&quot;, &quot;Johnson&quot;, &quot;Wyandotte&quot;, &quot;Jackson&quot;, &quot;Clay&quot;, ~
+## $ NAMELSAD &lt;chr&gt; &quot;Cass County&quot;, &quot;Platte County&quot;, &quot;Johnson County&quot;, &quot;Wyandotte ~
+## $ LSAD     &lt;chr&gt; &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;06&quot;, &quot;06&quot;
+## $ CLASSFP  &lt;chr&gt; &quot;H1&quot;, &quot;H1&quot;, &quot;H1&quot;, &quot;H6&quot;, &quot;H1&quot;, &quot;H1&quot;, &quot;H1&quot;
+## $ MTFCC    &lt;chr&gt; &quot;G4020&quot;, &quot;G4020&quot;, &quot;G4020&quot;, &quot;G4020&quot;, &quot;G4020&quot;, &quot;G4020&quot;, &quot;G4020&quot;
+## $ CSAFP    &lt;chr&gt; &quot;312&quot;, &quot;312&quot;, &quot;312&quot;, &quot;312&quot;, &quot;312&quot;, &quot;312&quot;, &quot;312&quot;
+## $ CBSAFP   &lt;chr&gt; &quot;28140&quot;, &quot;28140&quot;, &quot;28140&quot;, &quot;28140&quot;, &quot;28140&quot;, &quot;28140&quot;, &quot;28140&quot;
+## $ METDIVFP &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA
+## $ FUNCSTAT &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;C&quot;, &quot;A&quot;, &quot;A&quot;, &quot;A&quot;
+## $ ALAND    &lt;dbl&gt; 1804223313, 1087283058, 1226679688, 392739381, 1565698757, 10~
+## $ AWATER   &lt;dbl&gt; 14963188, 16949451, 16319024, 11801597, 30621016, 28508804, 1~
+## $ INTPTLAT &lt;chr&gt; &quot;+38.6464737&quot;, &quot;+39.3786900&quot;, &quot;+38.8839065&quot;, &quot;+39.1153842&quot;, &quot;~
+## $ INTPTLON &lt;chr&gt; &quot;-094.3545467&quot;, &quot;-094.7614765&quot;, &quot;-094.8223295&quot;, &quot;-094.7630866~
+## $ geometry &lt;MULTIPOLYGON [°]&gt; MULTIPOLYGON (((-94.11966 3..., MULTIPOLYGON (((-94.65596 3..~
+## $ label    &lt;chr&gt; &quot;Cass&quot;, &quot;Platte&quot;, &quot;Johnson&quot;, &quot;Wyandotte&quot;, &quot;Jackson&quot;, &quot;Clay&quot;, ~</code></pre>
+</div>
+<div id="draw-counties" class="section level3">
+<h3>Draw counties</h3>
+<pre class="r"><code>ggplot(co, aes(label=NAME))                        +
+  geom_sf()                                        +
+  geom_sf_text()                                   +
+  xlab(&quot;Longitude&quot;)                                +
+  ylab(&quot;Latitude&quot;)</code></pre>
+<pre><code>## Warning in st_point_on_surface.sfc(sf::st_zm(x)): st_point_on_surface may not
+## give correct results for longitude/latitude data</code></pre>
+<p><img src="data:image/png;base64,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" width="672" /></p>
 </div>
 
 

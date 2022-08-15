@@ -82,7 +82,7 @@ bg_mo                                  %>%
 
 ### Combine Kansas and Missouri
 
-```{r combine-tracts} 
+```{r combine-block-groups} 
 bg_ks                                  %>%
   bind_rows(bg_mo)                     %>%
   rename(bg_id=GEOID)                  %>%

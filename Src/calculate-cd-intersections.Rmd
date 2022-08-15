@@ -58,7 +58,7 @@ bl_cd_intersection                     %>%
   set_names("in_area")                 %>%
   bind_cols(bl_cd_intersection)        %>%
   mutate(
-    tr_id=str_sub(tr_id, 1, 11))       %>%
+    tr_id=str_sub(bl_id, 1, 11))       %>%
   mutate(
     bg_id=str_sub(bl_id, 1, 12))       %>%
   mutate(
@@ -99,7 +99,7 @@ bg_cd_intersection                     %>%
 
 Identify the list of all tracts that partially or completely intersect with any community district.
 
-```{r intersect-bg}
+```{r intersect-tr}
 tr                                     %>%
   st_intersection(cd)                   -> tr_cd_intersection
 
@@ -122,5 +122,6 @@ tr_cd_intersection                     %>%
 save(
   bl_cd_intersection,
   bg_cd_intersection,
+  tr_cd_intersection,
   file="../Data/cd-intersections.RData")
 ```

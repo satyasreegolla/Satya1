@@ -1,5 +1,5 @@
 ---
-title: "Quality check 03, Block group intersections with community districts"
+title: "Quality check 03, Tract intersections with community districts"
 author: "Satya Golla and Steve Simon"
 date: "Created 2022-03-21"
 output: html_document
@@ -8,7 +8,7 @@ knit: (function(inputFile, encoding) {
   output_dir = "../results", output_format = "all") })  
 ---
 
-This program examines block groups that only partially intersect with community districts.
+This program examines tracts that only partially intersect with community districts.
 
 ### Load relevant files
 
@@ -27,8 +27,8 @@ library(sf)
 library(tidyverse)
 path_name <- "../data/"
 
-load(glue("{path_name}bg.RData"))
-glimpse(bg)
+load(glue("{path_name}tr.RData"))
+glimpse(tr)
 
 load(glue("{path_name}bl.RData"))
 glimpse(bl)
@@ -40,12 +40,12 @@ load(glue("{path_name}co.RData"))
 glimpse(co)
 
 load(glue("{path_name}cd-intersections.RData"))
-glimpse(bg_cd_intersection)
+glimpse(tr_cd_intersection)
 glimpse(bl_cd_intersection)
 
 load(glue("{path_name}cd-weights.RData"))
-glimpse(bg_counts)
-glimpse(bg_list)
+glimpse(tr_counts)
+glimpse(tr_list)
 glimpse(bl_counts)
 glimpse(bl_list)
 
@@ -67,24 +67,24 @@ glimpse(co)
 # for various census, community, or neighborhood
 # geographies.
 
-display_bg_counts <- function(bg_counts, i_cd, i_bg) {
+display_tr_counts <- function(tr_counts, i_cd, i_tr) {
   # Display people and units inside community 
-  # district i_cd and block group i_bg
-  bg_counts                            %>%
+  # district i_cd and block group i_tr
+  tr_counts                            %>%
     filter(cd_id==i_cd)                %>%
-    filter(bg_id==i_bg)                %>%
+    filter(tr_id==i_tr)                %>%
     return
 }
 
-count_bl_inside_bg <- function(bl, i_bg) {
+count_bl_inside_tr <- function(bl, i_tr) {
   bl                                   %>%
     mutate(
-      bg_id=str_sub(bl_id, 1, 12))     %>%
-    filter(bg_id==i_bg)                %>%
+      tr_id=str_sub(bl_id, 1, 12))     %>%
+    filter(tr_id==i_tr)                %>%
     pull(bl_id)                         -> bl_subset
   bl_subset                            %>%
     length                             %>%
-    paste0(" blocks in bg")            %>%
+    paste0(" blocks in tr")            %>%
     print
   bl_counts                            %>%
     filter(cd_id==i)                   %>%
@@ -95,10 +95,10 @@ count_bl_inside_bg <- function(bl, i_bg) {
     print
   bl_counts                            %>%
     filter(cd_id==i)                   %>%
-    filter(bg_id==j)                   %>%
+    filter(tr_id==j)                   %>%
     select(
       bl_id,
-      prop_in,
+      bl_prop_in,
       people_in,
       people,
       units_in,
@@ -107,7 +107,7 @@ count_bl_inside_bg <- function(bl, i_bg) {
     return
 }
 
-display_bl_inside_outside_cd <- function(bl_cd_intersection, bg, i, j) {
+display_bl_inside_outside_cd <- function(bl_cd_intersection, tr, i, j) {
   # Displays counts of blocks within block
   # group j that are either inside or outside
   # community district i
@@ -118,19 +118,19 @@ display_bl_inside_outside_cd <- function(bl_cd_intersection, bg, i, j) {
 # These functions plot various census, 
 # community, or neighborhood  geographies.
 
-plot_bg <- function(cd, i_cd, bg, i_bg, bl) {
+plot_tr <- function(cd, i_cd, tr, i_tr, bl) {
   cd_subset <- filter(cd, cd_id==i_cd)
-  bg_subset <- filter(bg, bg_id==i_bg)
-  bl_subset <- filter(bl, str_sub(bl_id, 1, 12)==i_bg)
-  int_cd_bg <- st_intersection(cd_subset, bg_subset)
+  tr_subset <- filter(tr, tr_id==i_tr)
+  bl_subset <- filter(bl, str_sub(bl_id, 1, 12)==i_tr)
+  int_cd_tr <- st_intersection(cd_subset, tr_subset)
   ti <- paste0(
-    "Closeup of block group ", i_bg)
-  ggplot(bg_subset, aes())                +
+    "Closeup of block group ", i_tr)
+  ggplot(tr_subset, aes())                +
     geom_sf(
       fill=NA,
       color="darkred")                    +
     geom_sf(
-      data=int_cd_bg,
+      data=int_cd_tr,
       aes(),
       fill="lightgreen",
       color=NA)                +
@@ -139,13 +139,13 @@ plot_bg <- function(cd, i_cd, bg, i_bg, bl) {
       aes(),
       fill=NA,
       color="darkred")                  +
-    ggtitle(ti)                         -> bg_map
-  plot(bg_map)
+    ggtitle(ti)                         -> tr_map
+  plot(tr_map)
 }
 
-plot_bl <- function(cd, i_cd, bg, i_bg, bl, i_bl) {
+plot_bl <- function(cd, i_cd, tr, i_tr, bl, i_bl) {
   cd_subset <- filter(cd, cd_id==i_cd)
-  bg_subset <- filter(bg, bg_id %in% i_bg)
+  tr_subset <- filter(tr, tr_id %in% i_tr)
   bl_subset <- filter(bl, bl_id==i_bl)
   int_cd_bl <- st_intersection(cd_subset, bl_subset)
   ti <- paste0(
@@ -163,16 +163,16 @@ plot_bl <- function(cd, i_cd, bg, i_bg, bl, i_bl) {
   plot(bl_map)
 }
 
-plot_cd <- function(cd, i_cd, bg, i_bg, bg_info=i_bg) {
+plot_cd <- function(cd, i_cd, tr, i_tr, tr_info=i_tr) {
   cd_subset <- filter(cd, cd_id==i_cd)
-  ti <- paste(cd_subset$cd_name, bg_info)
-  bg_subset <- filter(bg, bg_id==i_bg)
+  ti <- paste(cd_subset$cd_name, tr_info)
+  tr_subset <- filter(tr, tr_id==i_tr)
   ggplot(cd_subset, aes())              +
     geom_sf(
       fill="lightgreen",
       color=NA)               +
     geom_sf(
-      data=bg_subset,
+      data=tr_subset,
       aes(),
       fill=NA,
       color="darkred")                  +
@@ -180,16 +180,6 @@ plot_cd <- function(cd, i_cd, bg, i_bg, bg_info=i_bg) {
   plot(cd_map)
 }
 
-<<<<<<< HEAD:Src/quality-check-03a.Rmd
-```{r loop}
-for (i in cd_list) {
-  county_plot(co, cd, i)
-  bg_list <- extract_bg(bl_counts, i)
-  for (j in bg_list) {
-    display_blocks(bl_counts, i, j)
-    bg_plot(cd, i, bg, bg_counts, j)
-  }
-=======
 plot_co <- function(co, cd, i_cd) {
   cd_subset <- filter(cd, cd_id==i_cd)
   ti <- glue("{cd_subset$cd_name} ({i_cd})")
@@ -204,7 +194,6 @@ plot_co <- function(co, cd, i_cd) {
       fill="lightgreen",
       color=NA)               -> co_map
   plot(co_map)
->>>>>>> a2881dbfb96d1f7b1f05fc3c0d9c61e5b017274f:Src/quality-check-03.Rmd
 }
 ```
 
@@ -224,43 +213,43 @@ cd                                     %>%
 
 for (i_cd in cd_list[2:2]) {
   plot_co(co, cd, i_cd)
-  bg_cd_intersection                     %>%
+  tr_cd_intersection                     %>%
     filter(cd_id==i_cd)                  %>%
-    select(bg_id, bg_prop_in)             -> bg_subset
-  print(bg_subset)
-  bg_n1 <- dim(bg_subset)[1]
-  bg_n2 <- sum(bg_subset$bg_prop_in==1)
-  bg_n3 <- sum(bg_subset$bg_prop_in > hi & bg_subset$bg_prop_in != 1)
-  bg_n4 <- sum(bg_subset$bg_prop_in > lo & bg_subset$bg_prop_in <= hi)
-  bg_n5 <- sum(bg_subset$bg_prop_in <= lo)
+    select(tr_id, tr_prop_in)             -> tr_subset
+  print(tr_subset)
+  tr_n1 <- dim(tr_subset)[1]
+  tr_n2 <- sum(tr_subset$tr_prop_in==1)
+  tr_n3 <- sum(tr_subset$tr_prop_in > hi & tr_subset$tr_prop_in != 1)
+  tr_n4 <- sum(tr_subset$tr_prop_in > lo & tr_subset$tr_prop_in <= hi)
+  tr_n5 <- sum(tr_subset$tr_prop_in <= lo)
   
-  bg_message <- glue(
-    "{bg_n1} block groups touch or intersect community district\n",
-    "{bg_n2} block groups lie entirely inside community district\n",
-    "{bg_n3} block groups lie mostly inside community district\n",
-    "{bg_n4} block groups lie partially inside community district\n",
-    "{bg_n5} block groups lie mostly outside community district\n")
-  cat(bg_message)
-  plot_cd(cd, i_cd, bg, bg_subset$bg_id, "block groups touching or interesecting")
-  plot_cd(cd, i_cd, bg, bg_subset$bg_id, "block groups touching or interesecting")
-    for (i_bg in bg_subset$bg_id) {
-    bg_cd_intersection                   %>%
+  tr_message <- glue(
+    "{tr_n1} block groups touch or intersect community district\n",
+    "{tr_n2} block groups lie entirely inside community district\n",
+    "{tr_n3} block groups lie mostly inside community district\n",
+    "{tr_n4} block groups lie partially inside community district\n",
+    "{tr_n5} block groups lie mostly outside community district\n")
+  cat(tr_message)
+  plot_cd(cd, i_cd, tr, tr_subset$tr_id, "block groups touching or interesecting")
+  plot_cd(cd, i_cd, tr, tr_subset$tr_id, "block groups touching or interesecting")
+    for (i_tr in tr_subset$tr_id) {
+    tr_cd_intersection                   %>%
       filter(cd_id==i_cd)                %>%
-      filter(bg_id==i_bg)                %>%
-      pull(bg_prop_in)                    -> bg_prop
-    if (bg_prop < lo) next
-    if (bg_prop > hi) next
-    plot_cd(cd, i_cd, bg, i_bg)
-    plot_bg(cd, i_cd, bg, i_bg, bl)
+      filter(tr_id==i_tr)                %>%
+      pull(tr_prop_in)                    -> tr_prop
+    if (tr_prop < lo) next
+    if (tr_prop > hi) next
+    plot_cd(cd, i_cd, tr, i_tr)
+    plot_tr(cd, i_cd, tr, i_tr, bl)
     bl_cd_intersection                   %>%
       filter(cd_id==i_cd)                %>%
-      filter(bg_id==i_bg)                %>%
+      filter(tr_id==i_tr)                %>%
       select(bl_id, bl_prop_in)           -> bl_subset
-    bl_n1 <- dim(filter(bl_cd_intersection, bg_id==i_bg))[1]
-    bl_n2 <- sum(bg_subset$bg_prop_in==1)
-    bl_n3 <- sum(bg_subset$bg_prop_in > hi & bg_subset$bg_prop_in != 1)
-    bl_n4 <- sum(bg_subset$bg_prop_in > lo & bg_subset$bg_prop_in <= hi)
-    bl_n5 <- sum(bg_subset$bg_prop_in <= lo)
+    bl_n1 <- dim(filter(bl_cd_intersection, tr_id==i_tr))[1]
+    bl_n2 <- sum(tr_subset$tr_prop_in==1)
+    bl_n3 <- sum(tr_subset$tr_prop_in > hi & tr_subset$tr_prop_in != 1)
+    bl_n4 <- sum(tr_subset$tr_prop_in > lo & tr_subset$tr_prop_in <= hi)
+    bl_n5 <- sum(tr_subset$tr_prop_in <= lo)
     bl_n6 <- bl_n1 - bl_n2 - bl_n3 - bl_n4 - bl_n5
     bl_message <- glue(
       "{bl_n1} blocks in the block group\n",
@@ -273,22 +262,22 @@ for (i_cd in cd_list[2:2]) {
     for (i_bl in bl_subset$bl_id) {
       bl_cd_intersection                 %>%
         filter(cd_id==i_cd)                %>%
-        filter(bg_id==i_bg)                %>%
+        filter(tr_id==i_tr)                %>%
         filter(bl_id==i_bl)                %>%
         pull(bl_prop_in)                    -> bl_prop
       if (bl_prop > hi) next
       if (bl_prop < lo) next
-      plot_bl(cd, i_cd, bg, i_bg, bl, i_bl)
+      plot_bl(cd, i_cd, tr, i_tr, bl, i_bl)
     }
-    bg_counts                            %>%
+    tr_counts                            %>%
       filter(cd_id==i_cd)                %>%
-      filter(bg_id==i_bg)                %>%
+      filter(tr_id==i_tr)                %>%
       data.frame                         %>%
       print
     bl_counts                            %>%
       filter(cd_id==i_cd)                %>%
-      filter(bg_id==i_bg)                %>%
-      select(-bg_id)                     %>%
+      filter(tr_id==i_tr)                %>%
+      select(-tr_id)                     %>%
       data.frame                         %>%
       print
   }

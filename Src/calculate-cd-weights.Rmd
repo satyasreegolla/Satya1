@@ -32,16 +32,6 @@ Johnson County, KS (20091)
 Leavenworth County, KS (20103)
 Wyandotte County, KS (20209)
 
-### Counts
-
-There are 7 counties in the Kansas City metropolitan area.
-
-There are 59 community districts in the 7 counties.
-
-There are 1,684 block groups in the 7 counties. 776 of these intersect partially or completely with one or more community districts. 465 intersect with only one community district, 213 with two, 65 with 3, 21 with 4, 7 with 5, 4 with 6, and 1 with 7. Note that `465*1 + 213*2 +65*3 + 21*4 + 7*5 + 4*6 + 1*7 = 1,236`.
-
-There are 39,903 blocks in the 7 counties. 17,547 of these intersect partially or completely with one or more community districts. 16339 intersect with only one community district, 1,108 intersect with two, 91 intersect with three, and 9 intersect with four. Note that `16339*1 + 1108*2 + 91*3 + 9*4 = 18864`.
-
 ### Setup
 
 ```{r setup}
@@ -52,6 +42,13 @@ path_name <- "../data/"
 ```
 
 ### Load key files
+
+Tracts
+
+```{r load-tr}
+load(paste0(path_name, "tr", ".RData"))
+glimpse(tr)
+```
 
 Block groups
 
@@ -78,6 +75,7 @@ Community district intersections
 
 ```{r load-cd-intersections}
 load(paste0(path_name, "cd-intersections", ".RData"))
+glimpse(tr_cd_intersection)
 glimpse(bg_cd_intersection)
 glimpse(bl_cd_intersection)
 ```
@@ -85,6 +83,52 @@ glimpse(bl_cd_intersection)
 ```{r load-redistricting}
 load(paste0(path_name, "red", ".RData"))
 glimpse(red)
+```
+
+### Counts
+
+```{r display-nice-counts}
+# This code will compute the count of a vector
+# and display it with commas if it is greater
+# than 999.
+nice_count <- function(x) {
+  x                                    %>%
+    unique                             %>%
+    length                             %>%
+    format(big.mark=",")
+}
+```
+There are 7 counties in the Kansas City metropolitan area.
+
+There are `r nice_count(cd$cd_id)` community districts in the 7 counties.
+
+There are 
+`r nice_count(tr$tr_id)`
+tracts in the 7 counties. 
+`r nice_count(tr_cd_intersection$tr_id)`
+of these intersect partially or completely with one or more community districts.
+
+There are 
+`r nice_count(bg$bg_id)`
+block groups in the 7 counties. 
+`r nice_count(bg_cd_intersection$bg_id)`
+of these intersect partially or completely with one or more community districts.
+
+There are 
+`r nice_count(bl$bl_id)`
+blocks in the 7 counties. 
+`r nice_count(bl_cd_intersection$bl_id)` 
+of these intersect partially or completely with one or more community districts.
+
+### Get tract list
+
+Identify the list of all tracts that partially or completely intersect with any community district.
+
+```{r intersect-tr}
+tr_cd_intersection                     %>%
+  pull(tr_id)                          %>%
+  unique                                -> tr_list
+glimpse(tr_list)
 ```
 
 ### Get block group list
@@ -105,22 +149,22 @@ Now get a list of all census blocks that lie inside any of these block groups. M
 ```{r pull-blocks}
 bl                                     %>%
   pull(bl_id)                          %>%
-  str_sub(1, 12)                       %>%
+  str_sub(1, 11)                       %>%
   bind_cols(bl$bl_id)                  %>%
-  set_names(c("bg_id", "bl_id"))       %>%
-  filter(bg_id %in% bg_list)           %>%
+  set_names(c("tr_id", "bl_id"))       %>%
+  
+  filter(tr_id %in% tr_list)           %>%
   inner_join(red, 
-    by=c("bg_id", "bl_id"))               -> bl_list
+    by=c("tr_id", "bl_id"))               -> bl_list
 glimpse(bl_list)
 ```
-
 
 ### Calculate counts and areas of intersections
 
 ```{r calculate-proportions}
 bl_cd_intersection                     %>%
   full_join(bl_list, 
-    by=c("bg_id", "bl_id"))            %>%
+    by=c("tr_id", "bg_id", "bl_id"))   %>%
   replace_na(list(bl_prop_in=0))       %>%
   replace_na(list(cd_id=0))            %>%
   mutate(
@@ -130,6 +174,7 @@ bl_cd_intersection                     %>%
     units_in=
       round(units*bl_prop_in))         %>%
   select(
+    tr_id,
     bg_id,
     bl_id,
     cd_id,
@@ -153,7 +198,7 @@ red                                    %>%
 glimpse(count_total)
 
 bl_counts                              %>%
-  group_by(bg_id, cd_id)               %>%
+  group_by(tr_id, bg_id, cd_id)        %>%
   summarize(
     people_in=sum(people_in),
     units_in=sum(units_in))            %>%
@@ -166,10 +211,36 @@ count_in                               %>%
 glimpse(bg_counts)
 ```
 
+### Calculate counts for tracts
+
+```{r count-tr}
+red                                    %>%
+  group_by(tr_id)                      %>%
+  summarize(
+    people=sum(people),
+    units=sum(units))                   -> count_total
+glimpse(count_total)
+
+bl_counts                              %>%
+  group_by(tr_id, cd_id)               %>%
+  summarize(
+    people_in=sum(people_in),
+    units_in=sum(units_in))            %>%
+  filter(cd_id > 0)                     -> count_in
+glimpse(count_in)
+
+count_in                               %>%
+  inner_join(count_total, by="tr_id")  %>%
+  filter(cd_id > 0)                     -> tr_counts
+glimpse(tr_counts)
+```
+
 ### Save the information in an RData file.
 
 ```{r save}
 save(
+  tr_counts,
+  tr_list,
   bg_counts,
   bg_list,
   bl_counts,
