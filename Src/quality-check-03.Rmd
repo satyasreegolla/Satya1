@@ -90,60 +90,6 @@ co                                     %>%
 glimpse(co)
 ```
 
-### Display functions
-
-```{r display-functions}
-# These functions display people and housing units
-# for various census, community, or neighborhood
-# geographies.
-
-display_bg_counts <- function(bg_counts, i_cd, i_bg) {
-  # Display people and units inside community 
-  # district i_cd and block group i_bg
-  bg_counts                            %>%
-    filter(cd_id==i_cd)                %>%
-    filter(bg_id==i_bg)                %>%
-    return
-}
-
-count_bl_inside_bg <- function(bl, i_bg) {
-  bl                                   %>%
-    mutate(
-      bg_id=str_sub(bl_id, 1, 12))     %>%
-    filter(bg_id==i_bg)                %>%
-    pull(bl_id)                         -> bl_subset
-  bl_subset                            %>%
-    length                             %>%
-    paste0(" blocks in bg")            %>%
-    print
-  bl_counts                            %>%
-    filter(cd_id==i)                   %>%
-    pull(bl_id)                         -> cd_list_i
-  setdiff(bl_list_j, cd_list_i)        %>%
-    length                             %>%
-    paste0(" blocks outside cd")       %>%
-    print
-  bl_counts                            %>%
-    filter(cd_id==i)                   %>%
-    filter(bg_id==j)                   %>%
-    select(
-      bl_id,
-      bl_prop_in,
-      people_in,
-      people,
-      units_in,
-      units)                           %>%
-    data.frame                         %>%
-    return
-}
-
-display_bl_inside_outside_cd <- function(bl_cd_intersection, bg, i, j) {
-  # Displays counts of blocks within block
-  # group j that are either inside or outside
-  # community district i
-}
-```
-
 ### Plot functions
 
 ```{r plot-functions}
@@ -168,70 +114,9 @@ add_green_interior <- function(mapx, geo) {
       color=NA)
 }
 
-plot_bg <- function(cd, i_cd, bg, i_bg, bl) {
-  cd_subset <- filter(cd, cd_id==i_cd)
-  bg_subset <- filter(bg, bg_id==i_bg)
-  bl_subset <- filter(bl, str_sub(bl_id, 1, 12)==i_bg)
-  int_cd_bg <- st_intersection(cd_subset, bg_subset)
-  ti <- paste0(
-    "Closeup of block group ", i_bg)
-  ggplot(bg_subset, aes())                +
-    geom_sf(
-      fill=NA,
-      color="darkred")                    +
-    geom_sf(
-      data=int_cd_bg,
-      aes(),
-      fill="lightgreen",
-      color=NA)                +
-    geom_sf(
-      data=bl_subset,
-      aes(),
-      fill=NA,
-      color="darkred")                  +
-    ggtitle(ti)                         -> bg_map
-  plot(bg_map)
-}
-
-plot_bl <- function(cd, i_cd, bg, i_bg, bl, i_bl) {
-  cd_subset <- filter(cd, cd_id==i_cd)
-  bg_subset <- filter(bg, bg_id %in% i_bg)
-  bl_subset <- filter(bl, bl_id==i_bl)
-  int_cd_bl <- st_intersection(cd_subset, bl_subset)
-  ti <- paste0(
-    "Closeup of block ", i_bl)
-  ggplot(bl_subset, aes())                   +
-    geom_sf(
-      fill=NA,
-      color="darkred")                  +
-    geom_sf(
-      data=int_cd_bl,
-      aes(),
-      fill="lightgreen",
-      color=NA)               +
-    ggtitle(ti)                         -> bl_map
-  plot(bl_map)
-}
-
-plot_cd <- function(cd, i_cd, bg, i_bg, bg_info=i_bg) {
-  cd_subset <- filter(cd, cd_id==i_cd)
-  ti <- paste(cd_subset$cd_name, bg_info)
-  bg_subset <- filter(bg, bg_id==i_bg)
-  ggplot(cd_subset, aes())              +
-    geom_sf(
-      fill="lightgreen",
-      color=NA)               +
-    geom_sf(
-      data=bg_subset,
-      aes(),
-      fill=NA,
-      color="darkred")                  +
-    ggtitle(ti)                         -> cd_map
-  plot(cd_map)
-}
 ```
 
-### Subset cd
+### Get id values for all community districts
 
 ```{r}
 cd                                     %>%
@@ -241,22 +126,25 @@ cd                                     %>%
   pull(cd_id)                           -> cd_list
 ```
 
+### Draw an overview map
+
+```{r}
+ggplot(co, aes(label=NAME))             +
+  geom_sf(fill=NA, color="darkred")     +
+  geom_sf_text()                        +
+  xlab("Longitude")                     +
+  ylab("Latitude")                      -> overview_map     
+plot(overview_map)
+```
+
 ### High level view
 
 ```{r loop}
 for (i_cd in cd_list[2:4]) {
   cd_subset <- filter(cd, cd_id==i_cd) 
   ti <- cd_subset$cd_name
-  ggplot(cd_subset, aes())              +
-    # geom_sf_text(co, aes(label=NAME))   +
+  overview_map                          +
     ggtitle(ti)                         +
-    xlab("Longitude")                   +
-    ylab("Latitude")                    +
-    geom_sf(
-      data=co,
-      aes(),
-      fill=NA,
-      color="darkred")   +
     geom_sf(
       data=cd_subset,
       fill="lightgreen",

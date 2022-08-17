@@ -28,6 +28,42 @@ library(tidyverse)
 path_name <- "../data/"
 ```
 
+### Sample code
+
+First is an example from [HIroaki Yutani's blog][yut1]. This is the "old" way.
+
+```{r}
+nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
+
+# use only first three elements
+nc3 <- nc[1:3, ]
+
+# choose a point on the surface of each geometry
+nc3_points <- sf::st_point_on_surface(nc3)
+
+# retrieve the coordinates
+nc3_coords <- as.data.frame(sf::st_coordinates(nc3_points))
+nc3_coords$NAME <- nc3$NAME
+
+nc3_coords
+
+ggplot() +
+  geom_sf(data = nc3, aes(fill = AREA)) +
+  geom_text(data = nc3_coords, aes(X, Y, label = NAME), colour = "white")
+```
+
+[yut1]: https://yutani.rbind.io/post/geom-sf-text-and-geom-sf-label-are-coming/
+
+This is the "new" way.
+
+```{r}
+# texts and labels
+p <- ggplot(nc3) +
+  geom_sf(aes(fill = AREA))
+
+p + geom_sf_text(aes(label = NAME), colour = "white")
+```
+
 ### Contents of bg
 
 ```{r}
@@ -92,9 +128,30 @@ glimpse(co)
 
 ### Draw counties
 
+The "old" way.
+
+```{r}
+co_points <- st_point_on_surface(co)
+
+# retrieve the coordinates
+co_coords <- as.data.frame(st_coordinates(co_points))
+co_coords$NAME <- co$NAME
+
+co_coords
+
+ggplot()+
+  geom_sf(data=co, color="darkred", fill=NA)     +
+  geom_text(data=co_coords, aes(X, Y, label=NAME))                           +
+  xlab("Longitude")                     +
+  ylab("Latitude")
+```
+
+
+The "new" way.
+
 ```{r}
 ggplot(co, aes(label=NAME))                        +
-  geom_sf()                                        +
+  geom_sf(color="darkred", fill=NA)     +
   geom_sf_text()                                   +
   xlab("Longitude")                                +
   ylab("Latitude")
