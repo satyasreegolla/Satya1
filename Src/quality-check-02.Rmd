@@ -47,7 +47,7 @@ glimpse(cd)
 
 ```{r list}
 bl_counts                              %>%
-  mutate(dev=abs(bl_prop_in-0.5))         %>%
+  mutate(dev=abs(bl_prop_in-0.5))      %>%
   arrange(dev)                          -> dev
 dev                                    %>%
   print(n=20)

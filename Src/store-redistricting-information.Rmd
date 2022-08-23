@@ -212,6 +212,7 @@ red1                                   %>%
     bl_id=
       str_sub(GEOCODE, 1, 15))         %>%
   select(
+    tr_id,
     bg_id,
     bl_id,
     people,
