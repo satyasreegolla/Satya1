@@ -25,6 +25,7 @@ library(glue)
 library(magrittr)
 library(sf)
 library(tidyverse)
+library(dplyr)
 path_name <- "../data/"
 ```
 
