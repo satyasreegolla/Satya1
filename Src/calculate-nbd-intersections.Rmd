@@ -64,6 +64,7 @@ bl_nbd_intersection                    %>%
   mutate(
     bl_prop_in=in_area/bl_area)        %>%
   mutate(
+    
     bl_prop_in=round(bl_prop_in, 3))   %>%
   select(
     bg_id,
