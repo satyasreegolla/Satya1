@@ -58,7 +58,7 @@ head(all_puma_mo)
 all_puma_mo                           %>%
      ggplot()                              +
       geom_sf(aes())                    +
-      ggtitle("mo-puma")
+      ggtitle("mo-puma")               -> puma
 ```
 
 
@@ -161,3 +161,12 @@ mo_ks_puma               %>%
         geom_sf(data=nbd[intersect_matrix, ], fill="pink", col="darkred") 
 } 
 ```
+
+### Store as an RData file
+
+Placing the file in an RData format will speed up future use of this file.
+
+```{r save}
+save(puma, file="../data/puma.RData")
+```
+
