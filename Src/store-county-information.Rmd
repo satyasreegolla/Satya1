@@ -44,7 +44,7 @@ all_counties                           %>%
    filter(STATEFP==20|STATEFP==29)     %>% 
    ggplot()                              +
       geom_sf(aes())                    +
-      ggtitle("mo-ks-counties")
+      ggtitle("mo-ks-counties")         -> co
 ```
 
 
@@ -169,3 +169,12 @@ ks_mo_counties                       %>%
 
 
 This program will read in census county files and store them in an RData file for later use.
+
+### Store as an RData file
+
+Placing the file in an RData format will speed up future use of this file.
+
+```{r save}
+save(co, file="../Data/co.RData")
+```
+
