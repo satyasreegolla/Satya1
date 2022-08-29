@@ -150,7 +150,7 @@ for (i_cd in cd_list[2:4]) {
       data=cd_subset,
       fill="lightgreen",
       color=NA)                         -> map1
-  print(map1)
+  plot(map1)
   next
   bg_cd_intersection                   %>%
     filter(cd_id==i_cd)                %>%
