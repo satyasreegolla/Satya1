@@ -388,7 +388,7 @@ County, MO (29165) Wyandotte County, KS (20209)</p>
 <pre class="r"><code>library(tidyverse)</code></pre>
 <pre><code>## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --</code></pre>
 <pre><code>## v ggplot2 3.3.5     v purrr   0.3.4
-## v tibble  3.1.7     v dplyr   1.0.9
+## v tibble  3.1.8     v dplyr   1.0.9
 ## v tidyr   1.1.3     v stringr 1.4.0
 ## v readr   2.0.1     v forcats 0.5.1</code></pre>
 <pre><code>## Warning: package &#39;tibble&#39; was built under R version 4.1.3</code></pre>
@@ -406,7 +406,7 @@ County, MO (29165) Wyandotte County, KS (20209)</p>
 <pre><code>## The following object is masked from &#39;package:tidyr&#39;:
 ## 
 ##     extract</code></pre>
-<pre class="r"><code>path_name &lt;- &quot;../data/&quot;
+<pre class="r"><code>path_name &lt;- &quot;../Data/&quot;
 load(paste0(path_name, &quot;bl&quot;, &quot;.RData&quot;))
 glimpse(bl)</code></pre>
 <pre><code>## Rows: 39,903
@@ -418,7 +418,8 @@ glimpse(bl)</code></pre>
 <pre class="r"><code>load(paste0(path_name, &quot;red&quot;, &quot;.RData&quot;))
 glimpse(red)</code></pre>
 <pre><code>## Rows: 39,903
-## Columns: 4
+## Columns: 5
+## $ tr_id  &lt;chr&gt; &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20091050000&quot;, &quot;20~
 ## $ bg_id  &lt;chr&gt; &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;, &quot;200910500001&quot;,~
 ## $ bl_id  &lt;chr&gt; &quot;200910500001000&quot;, &quot;200910500001001&quot;, &quot;200910500001002&quot;, &quot;20091~
 ## $ people &lt;dbl&gt; 52, 47, 51, 58, 138, 68, 35, 81, 39, 37, 35, 51, 52, 106, 45, 8~
@@ -426,8 +427,8 @@ glimpse(red)</code></pre>
 </div>
 <div id="calculate-mismatches" class="section level3">
 <h3>Calculate mismatches</h3>
-<p>Do a full join of bl and red. Mismatches are coded as m_code=0
-perfect match m_code=1 not found in red m_code=2 not found in bl</p>
+<p>Do a full join of bl and red. Mismatches are coded as + m_code=0
+perfect match + m_code=1 not found in red + m_code=2 not found in bl</p>
 <pre class="r"><code>bl                                    %&gt;%
   full_join(red, by=c(&quot;bl_id&quot;))       %&gt;%
   mutate(
@@ -436,16 +437,30 @@ perfect match m_code=1 not found in red m_code=2 not found in bl</p>
   mutate(
     m_bl=as.numeric(is.na(bl_name)))  %&gt;%
   mutate(m_code=m_red+2*m_bl)          -&gt; m
-m                                     %&gt;%
+m %&gt;%
+  group_by(m_code)                    %&gt;%
+  summarize(n=n())                    %&gt;%
+  print</code></pre>
+<pre><code>## Simple feature collection with 1 feature and 2 fields
+## Geometry type: POLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -95.18796 ymin: 38.44527 xmax: -94.06432 ymax: 39.53335
+## Geodetic CRS:  NAD83
+## # A tibble: 1 x 3
+##   m_code     n                                                          geometry
+##    &lt;dbl&gt; &lt;int&gt;                                                     &lt;POLYGON [°]&gt;
+## 1      0 39903 ((-94.7871 39.53173, -94.78734 39.53173, -94.78843 39.53174, -94~</code></pre>
+<pre class="r"><code>m                                     %&gt;%
   filter(m_code &gt; 0)                  %&gt;%
   print</code></pre>
-<pre><code>## Simple feature collection with 0 features and 9 fields
+<pre><code>## Simple feature collection with 0 features and 10 fields
 ## Bounding box:  xmin: NA ymin: NA xmax: NA ymax: NA
 ## Geodetic CRS:  NAD83
-##  [1] bl_id    bl_name  bl_area  bg_id    people   units    geometry m_red   
-##  [9] m_bl     m_code  
+##  [1] bl_id    bl_name  bl_area  tr_id    bg_id    people   units    geometry
+##  [9] m_red    m_bl     m_code  
 ## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
 <!---Key census links go here--->
+<p>There are no mismatches.</p>
 </div>
 
 

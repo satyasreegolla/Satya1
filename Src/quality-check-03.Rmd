@@ -25,6 +25,7 @@ library(glue)
 library(magrittr)
 library(sf)
 library(tidyverse)
+library(dplyr)
 path_name <- "../data/"
 ```
 
@@ -86,7 +87,7 @@ clist <- c(
   "29095",
   "29165")
 co                                     %>%
-  filter(GEOID %in% clist)              -> co
+  filter(GEOID %in% clist)             -> co
 glimpse(co)
 ```
 

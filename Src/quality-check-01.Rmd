@@ -32,7 +32,7 @@ Wyandotte County, KS (20209)
 library(sf)
 library(tidyverse)
 library(magrittr)
-path_name <- "../data/"
+path_name <- "../Data/"
 load(paste0(path_name, "bl", ".RData"))
 glimpse(bl)
 load(paste0(path_name, "red", ".RData"))
