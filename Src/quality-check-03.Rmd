@@ -130,12 +130,22 @@ cd                                     %>%
 ### Draw an overview map
 
 ```{r}
-ggplot(co, aes(label=NAME))             +
-  geom_sf(fill=NA, color="darkred")     +
-  geom_sf_text()                        +
+co_points <- st_point_on_surface(co)
+co_coords <- as.data.frame(st_coordinates(co_points))
+co_coords$NAME <- co$NAME
+
+co_coords
+
+ggplot()+
+  geom_sf(
+    data=co, 
+    color="darkred", 
+    fill=NA)                            +
+  geom_text(
+    data=co_coords, 
+    aes(X, Y, label=NAME))              +
   xlab("Longitude")                     +
   ylab("Latitude")                      -> overview_map     
-plot(overview_map)
 ```
 
 ### High level view
@@ -148,6 +158,7 @@ for (i_cd in cd_list[2:4]) {
     ggtitle(ti)                         +
     geom_sf(
       data=cd_subset,
+      aes(),
       fill="lightgreen",
       color=NA)                         -> map1
   plot(map1)
@@ -161,20 +172,67 @@ for (i_cd in cd_list[2:4]) {
   ggplot(cd_subset)                     +
     ggtitle(ti)                         +
     xlab("Longitude")                   +
-    ylab("Latitude")                   %>%
-    add_green_interior(cd_subset)      %>%
-    add_red_border(bg_subset)           -> map2
+    ylab("Latitude")                    +
+      geom_sf(
+        data=cd_subset,
+        aes(),
+        fill="lightgreen",
+        color=NA)                       +
+    geom_sf(
+      data=bg_subset,
+      aes(),
+      fill=NA,
+      color="darkred")                  -> map2
   plot(map2)
 
   for (i_bg in bg_list) {
+    bg_cd_intersection                 %>%
+      filter(cd_id==i_cd)              %>%
+      filter(bg_id==i_bg)              %>%
+      pull(bg_prop_in)                  -> p
+    if (p < 0.1) next
+    if (p > 0.9) next
     bl_subset <- filter(bl, str_sub(bl_id, 1, 12)==i_bg)
-    ggplot()                           %>%
+    ggplot(cd_subset)                   +
       ggtitle(ti)                       +
       xlab("Longitude")                 +
-      ylab("Latitude")                 %>%
-      add_green_interior(cd_subset)    %>%
-      add_red_border(bl_subset)         -> map3
-      plot(map3)
+      ylab("Latitude")                  +
+    geom_sf(
+      data=cd_subset,
+      aes(),
+      fill="lightgreen",
+      color=NA)                         +
+    geom_sf(
+      data=bl_subset,
+      aes(),
+      fill=NA,
+      color="darkred")                  -> map3
+    plot(map3)
+    for (i_bl in bl_list) {
+      bl_cd_intersection                 %>%
+        filter(cd_id==i_cd)              %>%
+        filter(bl_id==i_bl)              %>%
+        pull(bl_prop_in)                  -> p
+      if (p < 0.1) next
+      if (p > 0.9) next
+      next
+      bl_subsubset <- filter(bl, bl_id==i_bl)
+      ggplot(cd_subset)                   +
+        ggtitle(ti)                       +
+        xlab("Longitude")                 +
+        ylab("Latitude")                  +
+        geom_sf(
+          data=cd_subset,
+          aes(),
+          fill="lightgreen",
+          color=NA)                       +
+        geom_sf(
+          data=bl_subsubset,
+          aes(),
+          fill=NA,
+          color="darkred")                -> map4
+    plot(map4)
+    }
   }
 }
 ```

@@ -132,8 +132,6 @@ The "old" way.
 
 ```{r}
 co_points <- st_point_on_surface(co)
-
-# retrieve the coordinates
 co_coords <- as.data.frame(st_coordinates(co_points))
 co_coords$NAME <- co$NAME
 
