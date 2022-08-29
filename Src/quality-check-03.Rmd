@@ -134,8 +134,6 @@ co_points <- st_point_on_surface(co)
 co_coords <- as.data.frame(st_coordinates(co_points))
 co_coords$NAME <- co$NAME
 
-co_coords
-
 ggplot()+
   geom_sf(
     data=co, 
@@ -145,13 +143,16 @@ ggplot()+
     data=co_coords, 
     aes(X, Y, label=NAME))              +
   xlab("Longitude")                     +
-  ylab("Latitude")                      -> overview_map     
+  ylab("Latitude")                      -> overview_map
+plot(overview_map)
 ```
 
 ### High level view
 
 ```{r loop}
-for (i_cd in cd_list[2:4]) {
+for (i_cd in cd_list) {
+  # Draw community district in green atop
+  # counties outlined in red
   cd_subset <- filter(cd, cd_id==i_cd) 
   ti <- cd_subset$cd_name
   overview_map                          +
@@ -162,9 +163,12 @@ for (i_cd in cd_list[2:4]) {
       fill="lightgreen",
       color=NA)                         -> map1
   plot(map1)
-  next
+
+  # draw community districts in green with
+  # block groups outlined in red.
   bg_cd_intersection                   %>%
     filter(cd_id==i_cd)                %>%
+    filter(bg_prop_in > 0.10)          %>%
     pull(bg_id)                         -> bg_list
   bg                                   %>%
     filter(bg_id %in% bg_list)          -> bg_subset
@@ -185,6 +189,8 @@ for (i_cd in cd_list[2:4]) {
       color="darkred")                  -> map2
   plot(map2)
 
+  # draw block groups and blocks outlined
+  # in red atop community district in green.
   for (i_bg in bg_list) {
     bg_cd_intersection                 %>%
       filter(cd_id==i_cd)              %>%
@@ -208,101 +214,6 @@ for (i_cd in cd_list[2:4]) {
       fill=NA,
       color="darkred")                  -> map3
     plot(map3)
-    for (i_bl in bl_list) {
-      bl_cd_intersection                 %>%
-        filter(cd_id==i_cd)              %>%
-        filter(bl_id==i_bl)              %>%
-        pull(bl_prop_in)                  -> p
-      if (p < 0.1) next
-      if (p > 0.9) next
-      next
-      bl_subsubset <- filter(bl, bl_id==i_bl)
-      ggplot(cd_subset)                   +
-        ggtitle(ti)                       +
-        xlab("Longitude")                 +
-        ylab("Latitude")                  +
-        geom_sf(
-          data=cd_subset,
-          aes(),
-          fill="lightgreen",
-          color=NA)                       +
-        geom_sf(
-          data=bl_subsubset,
-          aes(),
-          fill=NA,
-          color="darkred")                -> map4
-    plot(map4)
-    }
-  }
-}
-```
-
-```{r}
-for (i_cd in cd_list[2:4]) {
-  next
-  bg_n1 <- dim(bg_subset)[1]
-  bg_n2 <- sum(bg_subset$bg_prop_in==1)
-  bg_n3 <- sum(bg_subset$bg_prop_in > hi & bg_subset$bg_prop_in != 1)
-  bg_n4 <- sum(bg_subset$bg_prop_in > lo & bg_subset$bg_prop_in <= hi)
-  bg_n5 <- sum(bg_subset$bg_prop_in <= lo)
-  
-  bg_message <- glue(
-    "{bg_n1} block groups touch or intersect community district\n",
-    "{bg_n2} block groups lie entirely inside community district\n",
-    "{bg_n3} block groups lie mostly inside community district\n",
-    "{bg_n4} block groups lie partially inside community district\n",
-    "{bg_n5} block groups lie mostly outside community district\n")
-  cat(bg_message)
-  plot_cd(cd, i_cd, bg, bg_subset$bg_id, "block groups touching or intersecting")
-  plot_cd(cd, i_cd, bg, bg_subset$bg_id, "block groups touching or intersecting")
-    for (i_bg in bg_subset$bg_id) {
-    bg_cd_intersection                   %>%
-      filter(cd_id==i_cd)                %>%
-      filter(bg_id==i_bg)                %>%
-      pull(bg_prop_in)                    -> bg_prop
-    if (bg_prop < lo) next
-    if (bg_prop > hi) next
-    plot_cd(cd, i_cd, bg, i_bg)
-    plot_bg(cd, i_cd, bg, i_bg, bl)
-    bl_cd_intersection                   %>%
-      filter(cd_id==i_cd)                %>%
-      filter(bg_id==i_bg)                %>%
-      select(bl_id, bl_prop_in)           -> bl_subset
-    bl_n1 <- dim(filter(bl_cd_intersection, bg_id==i_bg))[1]
-    bl_n2 <- sum(bg_subset$bg_prop_in==1)
-    bl_n3 <- sum(bg_subset$bg_prop_in > hi & bg_subset$bg_prop_in != 1)
-    bl_n4 <- sum(bg_subset$bg_prop_in > lo & bg_subset$bg_prop_in <= hi)
-    bl_n5 <- sum(bg_subset$bg_prop_in <= lo)
-    bl_n6 <- bl_n1 - bl_n2 - bl_n3 - bl_n4 - bl_n5
-    bl_message <- glue(
-      "{bl_n1} blocks in the block group\n",
-      "{bl_n2} blocks lie entirely inside community district\n",
-      "{bl_n3} blocks lie mostly inside community district\n",
-      "{bl_n4} blocks lie partially inside community district\n",
-      "{bl_n5} blocks lie mostly outside community district\n",
-      "{bl_n6} blocks lie entirely outside community district\n")
-    cat(bl_message)
-    for (i_bl in bl_subset$bl_id) {
-      bl_cd_intersection                 %>%
-        filter(cd_id==i_cd)                %>%
-        filter(bg_id==i_bg)                %>%
-        filter(bl_id==i_bl)                %>%
-        pull(bl_prop_in)                    -> bl_prop
-      if (bl_prop > hi) next
-      if (bl_prop < lo) next
-      plot_bl(cd, i_cd, bg, i_bg, bl, i_bl)
-    }
-    bg_counts                            %>%
-      filter(cd_id==i_cd)                %>%
-      filter(bg_id==i_bg)                %>%
-      data.frame                         %>%
-      print
-    bl_counts                            %>%
-      filter(cd_id==i_cd)                %>%
-      filter(bg_id==i_bg)                %>%
-      select(-bg_id)                     %>%
-      data.frame                         %>%
-      print
   }
 }
 ```
