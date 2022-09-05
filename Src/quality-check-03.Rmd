@@ -61,6 +61,7 @@ glimpse(co)
 
 ```{r}
 load(glue("{path_name}cd-intersections.RData"))
+glimpse(tr_cd_intersection)
 glimpse(bg_cd_intersection)
 glimpse(bl_cd_intersection)
 ```
@@ -89,32 +90,6 @@ clist <- c(
 co                                     %>%
   filter(GEOID %in% clist)             -> co
 glimpse(co)
-```
-
-### Plot functions
-
-```{r plot-functions}
-# These functions plot various census, 
-# community, or neighborhood  geographies.
-
-add_red_border <- function(mapx, geo) {
-  mapx                                    +
-    geom_sf(
-      data=geo,
-      aes(),
-      fill=NA,
-      color="darkred")
-}
-
-add_green_interior <- function(mapx, geo) {
-  mapx                                    +
-    geom_sf(
-      data=geo,
-      aes(),
-      fill="lightgreen",
-      color=NA)
-}
-
 ```
 
 ### Get id values for all community districts
@@ -150,7 +125,21 @@ plot(overview_map)
 ### High level view
 
 ```{r loop}
-for (i_cd in cd_list) {
+name_list <- c(
+  "Brookside",
+  "Midtown",
+  "Swope Park",
+  "Waldo",
+  "Ward Parkway",
+  "Greater Downtown",
+  "Antioch",
+  "Little Blue Valley",
+  "Rosedale",
+  "Argentine")
+cd                                     %>%
+  filter(cd_name %in% name_list)       %>%
+  pull(cd_id)                           -> interesting_cd
+for (i_cd in interesting_cd) {
   # Draw community district in green atop
   # counties outlined in red
   cd_subset <- filter(cd, cd_id==i_cd) 
@@ -173,6 +162,10 @@ for (i_cd in cd_list) {
   bg                                   %>%
     filter(bg_id %in% bg_list)          -> bg_subset
 
+  bg_points <- st_point_on_surface(bg_subset)
+  bg_coords <- as.data.frame(st_coordinates(bg_points))
+  bg_coords$NAME <- str_sub(bg_subset$bg_id, 6, 12)
+
   ggplot(cd_subset)                     +
     ggtitle(ti)                         +
     xlab("Longitude")                   +
@@ -182,6 +175,9 @@ for (i_cd in cd_list) {
         aes(),
         fill="lightgreen",
         color=NA)                       +
+    geom_text(
+      data=bg_coords, 
+      aes(X, Y, label=NAME))            +
     geom_sf(
       data=bg_subset,
       aes(),

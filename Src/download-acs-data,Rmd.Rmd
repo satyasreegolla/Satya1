@@ -1,0 +1,123 @@
+---
+title: "Quality check 03, Block group intersections with community districts"
+author: "Satya Golla and Steve Simon"
+date: "Created 2022-03-21"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = "../results", output_format = "all") })  
+---
+
+This program downloads information from 
+the American Community Survey and displays
+it on a map.
+
+### Load relevant files
+
+```{r setup}
+# Important abbreviations:
+#    bg = block group
+#    bl = block
+#    cd = community district
+#    co = county
+#    nbd=neighborhood
+#    tr = tract
+
+library(glue)
+library(magrittr)
+library(sf)
+library(tidyverse)
+library(tidycensus)
+library(dplyr)
+path_name <- "../data/"
+```
+
+### Contents of bg
+
+```{r}
+load(glue("{path_name}bg.RData"))
+glimpse(bg)
+```
+
+### Contents of bl
+
+```{r}
+load(glue("{path_name}bl.RData"))
+glimpse(bl)
+```
+
+### Contents of cd
+
+```{r}
+load(glue("{path_name}cd.RData"))
+glimpse(cd)
+```
+
+### Contents of co
+
+```{r}
+load(glue("{path_name}co.RData"))
+glimpse(co)
+```
+
+### Subset co to seven counties
+
+```{r}
+clist <- c(
+  "20091",
+  "20103",
+  "20209",
+  "29037",
+  "29047",
+  "29095",
+  "29165")
+co                                     %>%
+  filter(GEOID %in% clist)             -> co
+glimpse(co)
+```
+
+### Get id values for all community districts
+
+```{r}
+cd                                     %>%
+  tibble                               %>%
+  distinct(cd_id)                      %>%
+  arrange(cd_id)                       %>%
+  pull(cd_id)                           -> cd_list
+```
+
+### Pull state information from ACS
+
+The examples here are loosely based on
+the [basic usage vignette][walk1] for tidycensus.
+
+[walk1]: https://walker-data.com/tidycensus/articles/basic-usage.html
+
+```{r}
+vlist <- c("B01001_003", "B01001_027")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+vlist <- c("DP04_0016", "DP04_0024", "DP04_0025", "DP04_0026")
+load_variables(2020, "acs5", cache = TRUE) %>%
+  filter(name %in% vlist)
+
+get_acs(
+  geography = "state", 
+  variables = vlist,
+  year = 2020)
+
+get_acs(
+  geography = "county", 
+  variables = vlist, 
+  state="MO",
+  year = 2020)
+
+get_acs(
+  geography = "tract", 
+  variables = vlist, 
+  state="MO",
+  county="Jackson",
+  year = 2020)
+```
+
