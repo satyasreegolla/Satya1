@@ -508,15 +508,9 @@ glimpse(co)</code></pre>
 <h3>Pull state information from ACS</h3>
 <p>The examples here are loosely based on the <a href="https://walker-data.com/tidycensus/articles/basic-usage.html">basic
 usage vignette</a> for tidycensus.</p>
-<pre class="r"><code>vlist &lt;- c(&quot;B01001_003&quot;, &quot;B01001_027&quot;)
-load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
-  filter(name %in% vlist)</code></pre>
-<pre><code>## # A tibble: 2 x 3
-##   name       label                                    concept   
-##   &lt;chr&gt;      &lt;chr&gt;                                    &lt;chr&gt;     
-## 1 B01001_003 Estimate!!Total:!!Male:!!Under 5 years   SEX BY AGE
-## 2 B01001_027 Estimate!!Total:!!Female:!!Under 5 years SEX BY AGE</code></pre>
-<pre class="r"><code>vlist &lt;- c(&quot;DP04_0016&quot;, &quot;DP04_0024&quot;, &quot;DP04_0025&quot;, &quot;DP04_0026&quot;)
+<pre class="r"><code># Note: Data Profiles (DP) are available in the five year
+# ACS data only down to the tract level.
+vlist &lt;- c(&quot;DP04_0016&quot;, &quot;DP04_0024&quot;, &quot;DP04_0025&quot;, &quot;DP04_0026&quot;)
 load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
   filter(name %in% vlist)</code></pre>
 <pre><code>## # A tibble: 0 x 3
@@ -584,6 +578,404 @@ load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
 ##  9 29095000700 Census Tract 7, Jackson County, Missouri DP04_0016     1558   383
 ## 10 29095000700 Census Tract 7, Jackson County, Missouri DP04_0024       84    88
 ## # ... with 898 more rows</code></pre>
+<pre class="r"><code># Note: Detail tables (B) are available in the five year
+# ACS data down to the census block group level.
+vlist &lt;- c(&quot;B01001_003&quot;, &quot;B01001_027&quot;)
+load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
+  filter(name %in% vlist)</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##   name       label                                    concept   
+##   &lt;chr&gt;      &lt;chr&gt;                                    &lt;chr&gt;     
+## 1 B01001_003 Estimate!!Total:!!Male:!!Under 5 years   SEX BY AGE
+## 2 B01001_027 Estimate!!Total:!!Female:!!Under 5 years SEX BY AGE</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;cbg&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 1,280 x 5
+##    GEOID        NAME                                     variable estimate   moe
+##    &lt;chr&gt;        &lt;chr&gt;                                    &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
+##  1 290950003001 Block Group 1, Census Tract 3, Jackson ~ B01001_~       19    22
+##  2 290950003001 Block Group 1, Census Tract 3, Jackson ~ B01001_~        0    12
+##  3 290950003002 Block Group 2, Census Tract 3, Jackson ~ B01001_~        0    12
+##  4 290950003002 Block Group 2, Census Tract 3, Jackson ~ B01001_~        0    12
+##  5 290950003003 Block Group 3, Census Tract 3, Jackson ~ B01001_~       38    37
+##  6 290950003003 Block Group 3, Census Tract 3, Jackson ~ B01001_~       35    28
+##  7 290950006001 Block Group 1, Census Tract 6, Jackson ~ B01001_~       23    38
+##  8 290950006001 Block Group 1, Census Tract 6, Jackson ~ B01001_~       17    25
+##  9 290950006002 Block Group 2, Census Tract 6, Jackson ~ B01001_~      148   109
+## 10 290950006002 Block Group 2, Census Tract 6, Jackson ~ B01001_~       61    68
+## # ... with 1,270 more rows</code></pre>
+<pre class="r"><code># But some estimates are still only available in the
+# five year ACS survey at the tract level or higher.
+vlist &lt;- c(&quot;B13002_001&quot;, &quot;B13002_002&quot;, &quot;B13002_011&quot;)
+load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
+  filter(name %in% vlist)</code></pre>
+<pre><code>## # A tibble: 3 x 3
+##   name       label                                                       concept
+##   &lt;chr&gt;      &lt;chr&gt;                                                       &lt;chr&gt;  
+## 1 B13002_001 Estimate!!Total:                                            WOMEN ~
+## 2 B13002_002 Estimate!!Total:!!Women who had a birth in the past 12 mon~ WOMEN ~
+## 3 B13002_011 Estimate!!Total:!!Women who did not have a birth in the pa~ WOMEN ~</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;tract&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 681 x 5
+##    GEOID       NAME                                     variable  estimate   moe
+##    &lt;chr&gt;       &lt;chr&gt;                                    &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;
+##  1 29095000300 Census Tract 3, Jackson County, Missouri B13002_0~      402    93
+##  2 29095000300 Census Tract 3, Jackson County, Missouri B13002_0~        0    12
+##  3 29095000300 Census Tract 3, Jackson County, Missouri B13002_0~      402    93
+##  4 29095000600 Census Tract 6, Jackson County, Missouri B13002_0~     1247   288
+##  5 29095000600 Census Tract 6, Jackson County, Missouri B13002_0~       55    64
+##  6 29095000600 Census Tract 6, Jackson County, Missouri B13002_0~     1192   270
+##  7 29095000700 Census Tract 7, Jackson County, Missouri B13002_0~      789   205
+##  8 29095000700 Census Tract 7, Jackson County, Missouri B13002_0~       16    25
+##  9 29095000700 Census Tract 7, Jackson County, Missouri B13002_0~      773   206
+## 10 29095000800 Census Tract 8, Jackson County, Missouri B13002_0~      932   205
+## # ... with 671 more rows</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;cbg&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 1,920 x 5
+##    GEOID        NAME                                     variable estimate   moe
+##    &lt;chr&gt;        &lt;chr&gt;                                    &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
+##  1 290950003001 Block Group 1, Census Tract 3, Jackson ~ B13002_~       NA    NA
+##  2 290950003001 Block Group 1, Census Tract 3, Jackson ~ B13002_~       NA    NA
+##  3 290950003001 Block Group 1, Census Tract 3, Jackson ~ B13002_~       NA    NA
+##  4 290950003002 Block Group 2, Census Tract 3, Jackson ~ B13002_~       NA    NA
+##  5 290950003002 Block Group 2, Census Tract 3, Jackson ~ B13002_~       NA    NA
+##  6 290950003002 Block Group 2, Census Tract 3, Jackson ~ B13002_~       NA    NA
+##  7 290950003003 Block Group 3, Census Tract 3, Jackson ~ B13002_~       NA    NA
+##  8 290950003003 Block Group 3, Census Tract 3, Jackson ~ B13002_~       NA    NA
+##  9 290950003003 Block Group 3, Census Tract 3, Jackson ~ B13002_~       NA    NA
+## 10 290950006001 Block Group 1, Census Tract 6, Jackson ~ B13002_~       NA    NA
+## # ... with 1,910 more rows</code></pre>
+<pre class="r"><code>vlist &lt;- c(&quot;B21001_001&quot;, &quot;B21001_002&quot;, &quot;B21001_003&quot;)
+load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
+  filter(name %in% vlist)</code></pre>
+<pre><code>## # A tibble: 3 x 3
+##   name       label                        concept                               
+##   &lt;chr&gt;      &lt;chr&gt;                        &lt;chr&gt;                                 
+## 1 B21001_001 Estimate!!Total:             SEX BY AGE BY VETERAN STATUS FOR THE ~
+## 2 B21001_002 Estimate!!Total:!!Veteran    SEX BY AGE BY VETERAN STATUS FOR THE ~
+## 3 B21001_003 Estimate!!Total:!!Nonveteran SEX BY AGE BY VETERAN STATUS FOR THE ~</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;tract&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 681 x 5
+##    GEOID       NAME                                     variable  estimate   moe
+##    &lt;chr&gt;       &lt;chr&gt;                                    &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;
+##  1 29095000300 Census Tract 3, Jackson County, Missouri B21001_0~     1257   220
+##  2 29095000300 Census Tract 3, Jackson County, Missouri B21001_0~       54    55
+##  3 29095000300 Census Tract 3, Jackson County, Missouri B21001_0~     1203   202
+##  4 29095000600 Census Tract 6, Jackson County, Missouri B21001_0~     2943   525
+##  5 29095000600 Census Tract 6, Jackson County, Missouri B21001_0~      156   134
+##  6 29095000600 Census Tract 6, Jackson County, Missouri B21001_0~     2787   519
+##  7 29095000700 Census Tract 7, Jackson County, Missouri B21001_0~     2340   476
+##  8 29095000700 Census Tract 7, Jackson County, Missouri B21001_0~      121    54
+##  9 29095000700 Census Tract 7, Jackson County, Missouri B21001_0~     2219   475
+## 10 29095000800 Census Tract 8, Jackson County, Missouri B21001_0~     2725   394
+## # ... with 671 more rows</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;cbg&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 1,920 x 5
+##    GEOID        NAME                                     variable estimate   moe
+##    &lt;chr&gt;        &lt;chr&gt;                                    &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
+##  1 290950003001 Block Group 1, Census Tract 3, Jackson ~ B21001_~      777   174
+##  2 290950003001 Block Group 1, Census Tract 3, Jackson ~ B21001_~       38    49
+##  3 290950003001 Block Group 1, Census Tract 3, Jackson ~ B21001_~      739   150
+##  4 290950003002 Block Group 2, Census Tract 3, Jackson ~ B21001_~       42    60
+##  5 290950003002 Block Group 2, Census Tract 3, Jackson ~ B21001_~        0    12
+##  6 290950003002 Block Group 2, Census Tract 3, Jackson ~ B21001_~       42    60
+##  7 290950003003 Block Group 3, Census Tract 3, Jackson ~ B21001_~      438   155
+##  8 290950003003 Block Group 3, Census Tract 3, Jackson ~ B21001_~       16    22
+##  9 290950003003 Block Group 3, Census Tract 3, Jackson ~ B21001_~      422   158
+## 10 290950006001 Block Group 1, Census Tract 6, Jackson ~ B21001_~      890   385
+## # ... with 1,910 more rows</code></pre>
+<pre class="r"><code>vlist &lt;- c(&quot;B25001_001&quot;, &quot;B25002_001&quot;, &quot;B25002_002&quot;, &quot;B25002_003&quot;)
+load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
+  filter(name %in% vlist)</code></pre>
+<pre><code>## # A tibble: 4 x 3
+##   name       label                      concept         
+##   &lt;chr&gt;      &lt;chr&gt;                      &lt;chr&gt;           
+## 1 B25001_001 Estimate!!Total            HOUSING UNITS   
+## 2 B25002_001 Estimate!!Total:           OCCUPANCY STATUS
+## 3 B25002_002 Estimate!!Total:!!Occupied OCCUPANCY STATUS
+## 4 B25002_003 Estimate!!Total:!!Vacant   OCCUPANCY STATUS</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;tract&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 908 x 5
+##    GEOID       NAME                                     variable  estimate   moe
+##    &lt;chr&gt;       &lt;chr&gt;                                    &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;
+##  1 29095000300 Census Tract 3, Jackson County, Missouri B25001_0~      902   116
+##  2 29095000300 Census Tract 3, Jackson County, Missouri B25002_0~      902   116
+##  3 29095000300 Census Tract 3, Jackson County, Missouri B25002_0~      796   126
+##  4 29095000300 Census Tract 3, Jackson County, Missouri B25002_0~      106    63
+##  5 29095000600 Census Tract 6, Jackson County, Missouri B25001_0~     1821   171
+##  6 29095000600 Census Tract 6, Jackson County, Missouri B25002_0~     1821   171
+##  7 29095000600 Census Tract 6, Jackson County, Missouri B25002_0~     1482   209
+##  8 29095000600 Census Tract 6, Jackson County, Missouri B25002_0~      339   146
+##  9 29095000700 Census Tract 7, Jackson County, Missouri B25001_0~     1558   383
+## 10 29095000700 Census Tract 7, Jackson County, Missouri B25002_0~     1558   383
+## # ... with 898 more rows</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;cbg&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 2,560 x 5
+##    GEOID        NAME                                     variable estimate   moe
+##    &lt;chr&gt;        &lt;chr&gt;                                    &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
+##  1 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25001_~      602   116
+##  2 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25002_~      602   116
+##  3 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25002_~      507   120
+##  4 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25002_~       95    54
+##  5 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25001_~       21    30
+##  6 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25002_~       21    30
+##  7 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25002_~       21    30
+##  8 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25002_~        0    12
+##  9 290950003003 Block Group 3, Census Tract 3, Jackson ~ B25001_~      279    66
+## 10 290950003003 Block Group 3, Census Tract 3, Jackson ~ B25002_~      279    66
+## # ... with 2,550 more rows</code></pre>
+<pre class="r"><code>vlist &lt;- c(&quot;B25002_002&quot;, &quot;B25003_001&quot;, &quot;B25003_002&quot;, &quot;B25003_003&quot;)
+load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
+  filter(name %in% vlist)</code></pre>
+<pre><code>## # A tibble: 4 x 3
+##   name       label                             concept         
+##   &lt;chr&gt;      &lt;chr&gt;                             &lt;chr&gt;           
+## 1 B25002_002 Estimate!!Total:!!Occupied        OCCUPANCY STATUS
+## 2 B25003_001 Estimate!!Total:                  TENURE          
+## 3 B25003_002 Estimate!!Total:!!Owner occupied  TENURE          
+## 4 B25003_003 Estimate!!Total:!!Renter occupied TENURE</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;tract&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 908 x 5
+##    GEOID       NAME                                     variable  estimate   moe
+##    &lt;chr&gt;       &lt;chr&gt;                                    &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;
+##  1 29095000300 Census Tract 3, Jackson County, Missouri B25002_0~      796   126
+##  2 29095000300 Census Tract 3, Jackson County, Missouri B25003_0~      796   126
+##  3 29095000300 Census Tract 3, Jackson County, Missouri B25003_0~      171    57
+##  4 29095000300 Census Tract 3, Jackson County, Missouri B25003_0~      625   131
+##  5 29095000600 Census Tract 6, Jackson County, Missouri B25002_0~     1482   209
+##  6 29095000600 Census Tract 6, Jackson County, Missouri B25003_0~     1482   209
+##  7 29095000600 Census Tract 6, Jackson County, Missouri B25003_0~      660   200
+##  8 29095000600 Census Tract 6, Jackson County, Missouri B25003_0~      822   185
+##  9 29095000700 Census Tract 7, Jackson County, Missouri B25002_0~     1341   397
+## 10 29095000700 Census Tract 7, Jackson County, Missouri B25003_0~     1341   397
+## # ... with 898 more rows</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;cbg&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 2,560 x 5
+##    GEOID        NAME                                     variable estimate   moe
+##    &lt;chr&gt;        &lt;chr&gt;                                    &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
+##  1 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25002_~      507   120
+##  2 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25003_~      507   120
+##  3 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25003_~      151    53
+##  4 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25003_~      356   113
+##  5 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25002_~       21    30
+##  6 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25003_~       21    30
+##  7 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25003_~        0    12
+##  8 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25003_~       21    30
+##  9 290950003003 Block Group 3, Census Tract 3, Jackson ~ B25002_~      268    68
+## 10 290950003003 Block Group 3, Census Tract 3, Jackson ~ B25003_~      268    68
+## # ... with 2,550 more rows</code></pre>
+<pre class="r"><code>vlist &lt;- c(&quot;B25124_002&quot;, &quot;B25124_003&quot;, &quot;B25124_010&quot;, &quot;B25124_017&quot;, &quot;B25124_024&quot;, &quot;B25125_031&quot;)
+load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
+  filter(name %in% vlist)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##   name       label                                                       concept
+##   &lt;chr&gt;      &lt;chr&gt;                                                       &lt;chr&gt;  
+## 1 B25124_002 Estimate!!Total:!!Owner occupied:                           TENURE~
+## 2 B25124_003 Estimate!!Total:!!Owner occupied:!!1-person household:      TENURE~
+## 3 B25124_010 Estimate!!Total:!!Owner occupied:!!2-person household:      TENURE~
+## 4 B25124_017 Estimate!!Total:!!Owner occupied:!!3-person household:      TENURE~
+## 5 B25124_024 Estimate!!Total:!!Owner occupied:!!4-person household:      TENURE~
+## 6 B25125_031 Estimate!!Total:!!Renter occupied:!!Householder 15 to 34 y~ TENURE~</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;tract&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 1,362 x 5
+##    GEOID       NAME                                     variable  estimate   moe
+##    &lt;chr&gt;       &lt;chr&gt;                                    &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;
+##  1 29095000300 Census Tract 3, Jackson County, Missouri B25124_0~      171    57
+##  2 29095000300 Census Tract 3, Jackson County, Missouri B25124_0~       46    28
+##  3 29095000300 Census Tract 3, Jackson County, Missouri B25124_0~      106    38
+##  4 29095000300 Census Tract 3, Jackson County, Missouri B25124_0~       19    28
+##  5 29095000300 Census Tract 3, Jackson County, Missouri B25124_0~        0    12
+##  6 29095000300 Census Tract 3, Jackson County, Missouri B25125_0~        0    12
+##  7 29095000600 Census Tract 6, Jackson County, Missouri B25124_0~      660   200
+##  8 29095000600 Census Tract 6, Jackson County, Missouri B25124_0~      198    82
+##  9 29095000600 Census Tract 6, Jackson County, Missouri B25124_0~      137   103
+## 10 29095000600 Census Tract 6, Jackson County, Missouri B25124_0~       66    59
+## # ... with 1,352 more rows</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;cbg&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 3,840 x 5
+##    GEOID        NAME                                     variable estimate   moe
+##    &lt;chr&gt;        &lt;chr&gt;                                    &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
+##  1 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  2 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  3 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  4 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  5 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  6 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25125_~       NA    NA
+##  7 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  8 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  9 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25124_~       NA    NA
+## 10 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25124_~       NA    NA
+## # ... with 3,830 more rows</code></pre>
+<pre class="r"><code>vlist &lt;- c(&quot;B25124_038&quot;, &quot;B25124_039&quot;, &quot;B25124_046&quot;, &quot;B25124_053&quot;, &quot;B25124_060&quot;, &quot;B25124_067&quot;)
+load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
+  filter(name %in% vlist)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##   name       label                                                       concept
+##   &lt;chr&gt;      &lt;chr&gt;                                                       &lt;chr&gt;  
+## 1 B25124_038 Estimate!!Total:!!Renter occupied:                          TENURE~
+## 2 B25124_039 Estimate!!Total:!!Renter occupied:!!1-person household:     TENURE~
+## 3 B25124_046 Estimate!!Total:!!Renter occupied:!!2-person household:     TENURE~
+## 4 B25124_053 Estimate!!Total:!!Renter occupied:!!3-person household:     TENURE~
+## 5 B25124_060 Estimate!!Total:!!Renter occupied:!!4-person household:     TENURE~
+## 6 B25124_067 Estimate!!Total:!!Renter occupied:!!5-or-more person house~ TENURE~</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;tract&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 1,362 x 5
+##    GEOID       NAME                                     variable  estimate   moe
+##    &lt;chr&gt;       &lt;chr&gt;                                    &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;
+##  1 29095000300 Census Tract 3, Jackson County, Missouri B25124_0~      625   131
+##  2 29095000300 Census Tract 3, Jackson County, Missouri B25124_0~      250    59
+##  3 29095000300 Census Tract 3, Jackson County, Missouri B25124_0~      230   117
+##  4 29095000300 Census Tract 3, Jackson County, Missouri B25124_0~       31    29
+##  5 29095000300 Census Tract 3, Jackson County, Missouri B25124_0~       60    56
+##  6 29095000300 Census Tract 3, Jackson County, Missouri B25124_0~       54    35
+##  7 29095000600 Census Tract 6, Jackson County, Missouri B25124_0~      822   185
+##  8 29095000600 Census Tract 6, Jackson County, Missouri B25124_0~      208   101
+##  9 29095000600 Census Tract 6, Jackson County, Missouri B25124_0~      141    79
+## 10 29095000600 Census Tract 6, Jackson County, Missouri B25124_0~       94    84
+## # ... with 1,352 more rows</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;cbg&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 3,840 x 5
+##    GEOID        NAME                                     variable estimate   moe
+##    &lt;chr&gt;        &lt;chr&gt;                                    &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
+##  1 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  2 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  3 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  4 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  5 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  6 290950003001 Block Group 1, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  7 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  8 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25124_~       NA    NA
+##  9 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25124_~       NA    NA
+## 10 290950003002 Block Group 2, Census Tract 3, Jackson ~ B25124_~       NA    NA
+## # ... with 3,830 more rows</code></pre>
+<pre class="r"><code>vlist &lt;- c(&quot;B28001_001&quot;, &quot;B28001_002&quot;, &quot;B28001_011&quot;)
+load_variables(2020, &quot;acs5&quot;, cache = TRUE) %&gt;%
+  filter(name %in% vlist)</code></pre>
+<pre><code>## # A tibble: 3 x 3
+##   name       label                                                       concept
+##   &lt;chr&gt;      &lt;chr&gt;                                                       &lt;chr&gt;  
+## 1 B28001_001 Estimate!!Total:                                            TYPES ~
+## 2 B28001_002 Estimate!!Total:!!Has one or more types of computing devic~ TYPES ~
+## 3 B28001_011 Estimate!!Total:!!No Computer                               TYPES ~</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;tract&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 681 x 5
+##    GEOID       NAME                                     variable  estimate   moe
+##    &lt;chr&gt;       &lt;chr&gt;                                    &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;
+##  1 29095000300 Census Tract 3, Jackson County, Missouri B28001_0~      796   126
+##  2 29095000300 Census Tract 3, Jackson County, Missouri B28001_0~      744   125
+##  3 29095000300 Census Tract 3, Jackson County, Missouri B28001_0~       52    31
+##  4 29095000600 Census Tract 6, Jackson County, Missouri B28001_0~     1482   209
+##  5 29095000600 Census Tract 6, Jackson County, Missouri B28001_0~     1312   224
+##  6 29095000600 Census Tract 6, Jackson County, Missouri B28001_0~      170   102
+##  7 29095000700 Census Tract 7, Jackson County, Missouri B28001_0~     1341   397
+##  8 29095000700 Census Tract 7, Jackson County, Missouri B28001_0~     1208   393
+##  9 29095000700 Census Tract 7, Jackson County, Missouri B28001_0~      133    80
+## 10 29095000800 Census Tract 8, Jackson County, Missouri B28001_0~     1352   168
+## # ... with 671 more rows</code></pre>
+<pre class="r"><code>get_acs(
+  geography = &quot;cbg&quot;, 
+  variables = vlist, 
+  state=&quot;MO&quot;,
+  county=&quot;Jackson&quot;,
+  year = 2020)</code></pre>
+<pre><code>## Getting data from the 2016-2020 5-year ACS</code></pre>
+<pre><code>## # A tibble: 1,920 x 5
+##    GEOID        NAME                                     variable estimate   moe
+##    &lt;chr&gt;        &lt;chr&gt;                                    &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
+##  1 290950003001 Block Group 1, Census Tract 3, Jackson ~ B28001_~      507   120
+##  2 290950003001 Block Group 1, Census Tract 3, Jackson ~ B28001_~      477   118
+##  3 290950003001 Block Group 1, Census Tract 3, Jackson ~ B28001_~       30    24
+##  4 290950003002 Block Group 2, Census Tract 3, Jackson ~ B28001_~       21    30
+##  5 290950003002 Block Group 2, Census Tract 3, Jackson ~ B28001_~       21    30
+##  6 290950003002 Block Group 2, Census Tract 3, Jackson ~ B28001_~        0    12
+##  7 290950003003 Block Group 3, Census Tract 3, Jackson ~ B28001_~      268    68
+##  8 290950003003 Block Group 3, Census Tract 3, Jackson ~ B28001_~      246    66
+##  9 290950003003 Block Group 3, Census Tract 3, Jackson ~ B28001_~       22    19
+## 10 290950006001 Block Group 1, Census Tract 6, Jackson ~ B28001_~      402   118
+## # ... with 1,910 more rows</code></pre>
 </div>
 
 
