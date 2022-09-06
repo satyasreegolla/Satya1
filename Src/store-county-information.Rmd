@@ -51,7 +51,7 @@ all_counties                           %>%
 
 variable in the file 
 
-+ Variables:
+Variables:
   +  "STATEFP"
   +   "COUNTYFP"
   +   "TRACTCE"
