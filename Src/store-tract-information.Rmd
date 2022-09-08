@@ -19,7 +19,7 @@ library(tidyverse)
 
 A Census tract is a region usually within a single county that contains roughly 4,000 people. 
 
-The starting point for downloading most Census shapefiles is [here][c_general]. There are files for census tracts for [Kansas][c_tract_ks] and [Missouri][c_tract_mo].  The various functions described in the US counties shapefiles section will be used here.
+The starting point for downloading most Census shapefiles is [here][c_general]. There are files for census tracts for [Kansas][c_tract_ks] and [Missouri][c_tract_mo].
 
 [c_general]: https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html
 

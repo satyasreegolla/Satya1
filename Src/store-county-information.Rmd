@@ -31,42 +31,37 @@ path_name                              %>%
   st_read(stringsAsFactors=FALSE)      -> all_counties
 head(all_counties)
 all_counties                           %>%
-   filter(STATEFP==20)                    %>% 
+   filter(STATEFP==20)                 %>% 
    ggplot()                              +
       geom_sf(aes())                    +
       ggtitle("ks-counties")
 all_counties                           %>%
-   filter(STATEFP==29)                    %>% 
-   ggplot()                              +
+   filter(STATEFP==29)                 %>% 
+   ggplot()                             +
       geom_sf(aes())                    +
       ggtitle("mo-counties")
 all_counties                           %>%
-   filter(STATEFP==20|STATEFP==29)     %>% 
-   ggplot()                              +
+   filter(STATEFP==20|STATEFP==29)      -> co
+co                                     %>% 
+   ggplot()                             +
       geom_sf(aes())                    +
-      ggtitle("mo-ks-counties")         -> co
+      ggtitle("mo-ks-counties")        
 ```
 
-
-
-variable in the file 
-
-Variables:
-  +  "STATEFP"
-  +   "COUNTYFP"
-  +   "TRACTCE"
-  +   "BLKGRPCE" 
-  +   "AFFGEOID" 
-  +   "GEOID"
-  +   "NAME"
-  +   "NAMELSAD"
-  +   "LSAD"
-  +   "ALAND"
-  +   "AWATER"
-  +   "geometry"
- 
+Refer to the data dictionary, county-data-dictionary.yaml for information about where to find this data and what all the variables represent.
 
 This program will read in census county files and store them in an RData file for later use.
+
+### Rename variables
+
+For simplicity, we reduce the number of variables and keep only those needed for later analyses. The variables in the reduced dataset are
+
++ co_id
++ co_name
++ co_area
++ geometry
+
+
 
 ### Store as an RData file
 
