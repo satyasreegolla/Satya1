@@ -12,7 +12,7 @@
 <meta name="author" content="Satya Golla and Steve Simon" />
 
 
-<title>Calculate intersection of blocks and community districts</title>
+<title>Calculate weights for block groups</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -361,16 +361,16 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Calculate intersection of blocks and
-community districts</h1>
+<h1 class="title toc-ignore">Calculate weights for block groups</h1>
 <h4 class="author">Satya Golla and Steve Simon</h4>
 <h4 class="date">Created 2022-03-11</h4>
 
 </div>
 
 
-<p>This program will calculate which census blocks intersect with which
-community districts. It relies on information stored in</p>
+<p>This program will calculate weights for block groups to allow
+extrapolation to community districts.</p>
+<p>This program uses</p>
 <ul>
 <li>bg.RData</li>
 <li>bl.RData</li>
@@ -476,6 +476,9 @@ glimpse(tr_cd_intersection)</code></pre>
 ## $ bl_id      &lt;chr&gt; &quot;290950023002014&quot;, &quot;290950063002017&quot;, &quot;290950022003001&quot;, &quot;2~
 ## $ cd_id      &lt;dbl&gt; 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106,~
 ## $ bl_prop_in &lt;dbl&gt; 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 0.997, 0.001, 0.0~</code></pre>
+<p>Redistricting information</p>
+<p>The redistricting files provide counts of people and housing units
+for individual Census blocks.</p>
 <pre class="r"><code>load(paste0(path_name, &quot;red&quot;, &quot;.RData&quot;))
 glimpse(red)</code></pre>
 <pre><code>## Rows: 39,903
@@ -555,6 +558,19 @@ counts.</p>
 </div>
 <div id="calculate-counts-and-areas-of-intersections" class="section level3">
 <h3>Calculate counts and areas of intersections</h3>
+<p>Tracts and/or block groups that like entirely inside a community
+district get full weight. This is either the number of people or the
+number of housing units, depending on which measure from ACS we are
+using.</p>
+<p>Tracts and block groups that lie only partially inside a community
+district get partial weight.</p>
+<p>We calculate the partial weight by adding up the number of people or
+housing units in a Census block within a tract or block group only when
+it lies entirely inside a community district. We do not count people or
+housing units for a Census block that lies entirely outside a community
+district. There are a small number of Census blocks that lie partially
+inside a community district. For these, we allocate proportionally to
+the area inside the community district.</p>
 <pre class="r"><code>bl_cd_intersection                     %&gt;%
   full_join(bl_list, 
     by=c(&quot;tr_id&quot;, &quot;bg_id&quot;, &quot;bl_id&quot;))   %&gt;%
