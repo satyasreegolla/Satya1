@@ -1,6 +1,6 @@
 
 ---
-title: "Calculate intersection of blocks and community districts"
+title: "Calculate weights for block groups"
 author: "Satya Golla and Steve Simon"
 date: "Created 2022-03-11"
 output: html_document
@@ -9,7 +9,10 @@ knit: (function(inputFile, encoding) {
   output_dir = "../results", output_format = "all") })
 ---
 
-This program will calculate which census blocks intersect with which community districts. It relies on information stored in
+This program will calculate weights for block groups 
+to allow extrapolation to community districts.
+
+This program uses
 
 + bg.RData
 + bl.RData
@@ -79,6 +82,12 @@ glimpse(tr_cd_intersection)
 glimpse(bg_cd_intersection)
 glimpse(bl_cd_intersection)
 ```
+
+Redistricting information
+
+The redistricting files provide counts of 
+people and housing units for individual
+Census blocks.
 
 ```{r load-redistricting}
 load(paste0(path_name, "red", ".RData"))
@@ -160,6 +169,27 @@ glimpse(bl_list)
 ```
 
 ### Calculate counts and areas of intersections
+
+Tracts and/or block groups that like entirely
+inside a community district get full weight.
+This is either the number of people or the
+number of housing units, depending on which
+measure from ACS we are using.
+
+Tracts and block groups that lie only partially
+inside a community district get partial weight.
+
+We calculate the partial weight by adding up the
+number of people or housing units in a Census block
+within a tract or block group only when it
+lies entirely inside a community district.
+We do not count people or housing units for a 
+Census block that lies entirely outside a community
+district. There are a small number of Census 
+blocks that lie partially inside a community
+district. For these, we allocate proportionally
+to the area inside the community district.
+
 
 ```{r calculate-proportions}
 bl_cd_intersection                     %>%
